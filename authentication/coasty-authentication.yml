@@ -1,0 +1,78 @@
+generated: '2026-07-18'
+method: searched
+source: openapi/coasty-openapi-original.json
+docs: https://coasty.ai/docs
+discovery: https://coasty.ai/api/discovery
+summary:
+  types:
+  - apiKey
+  - http
+  api_key_in:
+  - header
+  key_header: X-API-Key
+  bearer_equivalent: true
+  live_key_prefix: sk-coasty-live-
+  sandbox_key_prefix: sk-coasty-test-
+  sandbox_free: true
+  key_management: Keys are minted/revoked via POST /v1/keys, GET /v1/keys, DELETE /v1/keys/{key_id}; each key is scoped.
+  scopes:
+  - predict
+  - ground
+  - parse
+  - session
+  - keys
+  - usage
+  - machines:read
+  - machines:write
+  - actions:exec
+  - terminal:exec
+  - files:read
+  - files:write
+  - browser:execute
+  - snapshots:write
+  - connection:read
+  - schedules:read
+  - schedules:write
+  - triggers:write
+  - runs:read
+  - runs:write
+  - workflows:read
+  - workflows:write
+  - llm_keys
+  byok:
+    description: Bring-your-own-model — run every LLM call on your own Anthropic/OpenAI key.
+    request_headers:
+    - X-LLM-Provider
+    - X-LLM-Api-Key
+    - X-LLM-Model
+    stored_key_endpoint: PUT /v1/llm/keys/{provider}
+    at_rest: AES-256-GCM encrypted; only a sha256-prefix fingerprint is echoed.
+schemes:
+- name: apiKey
+  type: apiKey
+  in: header
+  parameter: X-API-Key
+  description: 'Coasty API key. Live: `sk-coasty-live-...`. Sandbox: `sk-coasty-test-...`.'
+  sources:
+  - openapi/coasty-openapi-original.json
+- name: bearerAuth
+  type: http
+  scheme: bearer
+  bearerFormat: Coasty API key (sk-coasty-{live,test}-...)
+  description: Equivalent to X-API-Key. Use whichever your client supports.
+  sources:
+  - openapi/coasty-openapi-original.json
+- name: webhookHmac
+  type: apiKey
+  in: header
+  parameter: Coasty-Signature
+  description: 'HMAC-SHA256 credential for external schedule webhooks: t=<unix_ts>,v1=<hex_digest>.'
+  sources:
+  - openapi/coasty-openapi-original.json
+- name: webhookHmacLegacy
+  type: apiKey
+  in: header
+  parameter: X-Coasty-Signature
+  description: Compatibility alias for the Coasty-Signature HMAC credential.
+  sources:
+  - openapi/coasty-openapi-original.json
