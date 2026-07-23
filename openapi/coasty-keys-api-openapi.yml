@@ -1,0 +1,1288 @@
+openapi: 3.1.0
+info:
+  title: Coasty Public keys API
+  version: 1.0.0
+  summary: Computer Use Agents, scheduled automation, and managed VMs.
+  description: "# Coasty Public API\n\nCoasty is a Computer Use Agent (CUA) platform: predict actions from screenshots,\nprovision managed VMs, and run scheduled automation against them.\n\n## Authentication\n\nAll endpoints (except `/v1/triggers/webhook/{webhook_id}` and health checks) require an API key.\nPass it as either:\n\n- `X-API-Key: sk-coasty-live-...` (or `sk-coasty-test-...` for sandbox)\n- `Authorization: Bearer sk-coasty-live-...`\n\nThe external webhook endpoint does not use an API key, but it is authenticated:\nsend the HMAC-SHA256 `Coasty-Signature` credential documented on that operation.\n\nTest-mode keys (`sk-coasty-test-*`) hit the same validation paths as live keys but\nreturn mock VMs / mock action results and never bill credits — ideal for CI.\n\n## Pricing & budgeting\n\nPer-call rates (subject to change — see `lib/pricing/tiers.ts METERED_RATES`):\n\n| Endpoint | Credits |\n|---|---|\n| `POST /v1/predict` | ~5 |\n| `POST /v1/sessions` | 10 |\n| `POST /v1/sessions/{id}/predict` | ~4 |\n| `POST /v1/ground` | ~3 |\n| `POST /v1/parse` | 0 (free) |\n\nLong-running CUA jobs orchestrated through the dashboard (not this API) bill at\n10 credits/minute with a 20-credit minimum. Subscription tiers (`free | starter |\nprofessional | enterprise`) gate feature availability (e.g. custom system prompts),\nschedule counts, and the maximum trajectory length.\n\n## Errors\n\nEvery error response uses the same envelope:\n\n```json\n{\n  \"error\": {\n    \"code\": \"INSUFFICIENT_CREDITS\",\n    \"message\": \"Need 5, have 2.\",\n    \"type\": \"billing_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}\n```\n\nInclude the `request_id` in support requests.\n\n## Idempotency\n\nOperations marked `x-idempotency: reserve-and-replay` accept `Idempotency-Key:\n<≤128 chars of [A-Za-z0-9_-:]>`. Replays\nof the same key + identical body return the original response (with\n`X-Coasty-Idempotent-Replay: true`) for 24 h. Reusing the key with a different body\nis a 422 `IDEMPOTENCY_KEY_REUSED`.\nOperations marked `x-idempotency: webhook-payload-dedup` instead deduplicate the\nsame webhook id + identical raw body for 60 seconds; they do not accept an\nIdempotency-Key.\n\n## Clients & MCP\n\nUse the HTTP API directly from any language. Official TypeScript and Python SDKs\nare not currently published; generate a client from this OpenAPI document if needed.\n- MCP server: `npx -y @coasty/mcp` (see `x-mcp-server`)\n\n## Reference\n\nComplete (machine-readable) spec is hosted at `/.well-known/openapi.json` and\n`/openapi.json` (Stripe / Vercel conventions)."
+  contact:
+    name: Coasty Developer Support
+    url: https://coasty.ai/support
+    email: founders@coasty.ai
+  license:
+    name: MIT
+    identifier: MIT
+  termsOfService: https://coasty.ai/terms
+servers:
+- url: https://coasty.ai
+  description: Production
+- url: https://coasty.ai
+  description: Sandbox — use sk-coasty-test-* keys against the same host. No billing, mock VMs.
+security:
+- apiKey: []
+- bearerAuth: []
+tags:
+- name: keys
+  description: API key management and usage reporting.
+paths:
+  /v1/usage:
+    get:
+      tags:
+      - keys
+      operationId: getUsage
+      summary: Usage summary for a billing period
+      security:
+      - apiKey: []
+      - bearerAuth: []
+      parameters:
+      - name: period
+        in: query
+        required: false
+        schema:
+          type: string
+          pattern: ^[0-9]{4}-(0[1-9]|1[0-2])$
+          description: ISO YYYY-MM with a real month 01..12 (defaults to current month).
+      responses:
+        '200':
+          description: Usage summary.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsageSummaryResponse'
+          headers:
+            X-Coasty-Request-Id:
+              $ref: '#/components/headers/CoastyRequestId'
+            X-Coasty-Key-Kind:
+              $ref: '#/components/headers/KeyKind'
+            X-Coasty-Test-Mode:
+              $ref: '#/components/headers/TestMode'
+            X-Credits-Charged:
+              $ref: '#/components/headers/CreditsCharged'
+            X-Credits-Remaining:
+              $ref: '#/components/headers/CreditsRemaining'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/RateLimit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/RateRemaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/RateReset'
+            RateLimit-Limit:
+              $ref: '#/components/headers/RateLimit'
+            RateLimit-Remaining:
+              $ref: '#/components/headers/RateRemaining'
+            RateLimit-Reset:
+              $ref: '#/components/headers/RateReset'
+            Idempotency-Replayed:
+              $ref: '#/components/headers/IdempotencyReplayed'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+      x-auth-mode: api_key
+      x-required-scope: usage
+      x-required-scopes:
+      - usage
+      x-scope-policy: required
+      x-billing-code: null
+      x-offering: cua
+      x-feature-flag: PUBLIC_CUA_API_ENABLED
+      x-idempotency: none
+  /v1/idempotency/{key}:
+    parameters:
+    - $ref: '#/components/parameters/IdempotencyKeyPath'
+    get:
+      tags:
+      - keys
+      operationId: getIdempotencyResult
+      summary: Fetch a result by Idempotency-Key
+      description: Collect a prior mutating call's result by its Idempotency-Key alone (for clients that lost the original response). 'completed' returns the original body + original_status; 'processing' means it is still running; unknown/expired is 404.
+      security:
+      - apiKey: []
+      - bearerAuth: []
+      responses:
+        '200':
+          description: The cached result (completed) or its in-flight status (processing).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdempotencyLookupResponse'
+          headers:
+            X-Coasty-Request-Id:
+              $ref: '#/components/headers/CoastyRequestId'
+            X-Coasty-Key-Kind:
+              $ref: '#/components/headers/KeyKind'
+            X-Coasty-Test-Mode:
+              $ref: '#/components/headers/TestMode'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+      x-auth-mode: api_key
+      x-required-scope: null
+      x-required-scopes: []
+      x-scope-policy: none
+      x-billing-code: null
+      x-offering: idempotency
+      x-feature-flag: PUBLIC_IDEMPOTENCY_API_ENABLED
+      x-idempotency: none
+  /v1/keys:
+    post:
+      tags:
+      - keys
+      operationId: createApiKey
+      summary: Create an API key
+      description: Returns the raw key ONCE. Subsequent reads only return the prefix.
+      security:
+      - apiKey: []
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAPIKeyRequest'
+      responses:
+        '200':
+          description: Key created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIKeyResponse'
+          headers:
+            X-Coasty-Request-Id:
+              $ref: '#/components/headers/CoastyRequestId'
+            X-Coasty-Key-Kind:
+              $ref: '#/components/headers/KeyKind'
+            X-Coasty-Test-Mode:
+              $ref: '#/components/headers/TestMode'
+            X-Credits-Charged:
+              $ref: '#/components/headers/CreditsCharged'
+            X-Credits-Remaining:
+              $ref: '#/components/headers/CreditsRemaining'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/RateLimit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/RateRemaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/RateReset'
+            RateLimit-Limit:
+              $ref: '#/components/headers/RateLimit'
+            RateLimit-Remaining:
+              $ref: '#/components/headers/RateRemaining'
+            RateLimit-Reset:
+              $ref: '#/components/headers/RateReset'
+            Idempotency-Replayed:
+              $ref: '#/components/headers/IdempotencyReplayed'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+      x-auth-mode: api_key
+      x-required-scope: keys
+      x-required-scopes:
+      - keys
+      x-scope-policy: required
+      x-billing-code: null
+      x-offering: cua
+      x-feature-flag: PUBLIC_CUA_API_ENABLED
+      x-idempotency: none
+    get:
+      tags:
+      - keys
+      operationId: listApiKeys
+      summary: List API keys
+      security:
+      - apiKey: []
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Keys.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  keys:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/APIKeyListItem'
+          headers:
+            X-Coasty-Request-Id:
+              $ref: '#/components/headers/CoastyRequestId'
+            X-Coasty-Key-Kind:
+              $ref: '#/components/headers/KeyKind'
+            X-Coasty-Test-Mode:
+              $ref: '#/components/headers/TestMode'
+            X-Credits-Charged:
+              $ref: '#/components/headers/CreditsCharged'
+            X-Credits-Remaining:
+              $ref: '#/components/headers/CreditsRemaining'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/RateLimit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/RateRemaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/RateReset'
+            RateLimit-Limit:
+              $ref: '#/components/headers/RateLimit'
+            RateLimit-Remaining:
+              $ref: '#/components/headers/RateRemaining'
+            RateLimit-Reset:
+              $ref: '#/components/headers/RateReset'
+            Idempotency-Replayed:
+              $ref: '#/components/headers/IdempotencyReplayed'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+      x-auth-mode: api_key
+      x-required-scope: keys
+      x-required-scopes:
+      - keys
+      x-scope-policy: required
+      x-billing-code: null
+      x-offering: cua
+      x-feature-flag: PUBLIC_CUA_API_ENABLED
+      x-idempotency: none
+  /v1/keys/{key_id}:
+    parameters:
+    - name: key_id
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 128
+        pattern: ^[A-Za-z0-9_-]+$
+    delete:
+      tags:
+      - keys
+      operationId: revokeApiKey
+      summary: Revoke an API key
+      security:
+      - apiKey: []
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Revoked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RevokeAPIKeyResponse'
+          headers:
+            X-Coasty-Request-Id:
+              $ref: '#/components/headers/CoastyRequestId'
+            X-Coasty-Key-Kind:
+              $ref: '#/components/headers/KeyKind'
+            X-Coasty-Test-Mode:
+              $ref: '#/components/headers/TestMode'
+            X-Credits-Charged:
+              $ref: '#/components/headers/CreditsCharged'
+            X-Credits-Remaining:
+              $ref: '#/components/headers/CreditsRemaining'
+            X-RateLimit-Limit:
+              $ref: '#/components/headers/RateLimit'
+            X-RateLimit-Remaining:
+              $ref: '#/components/headers/RateRemaining'
+            X-RateLimit-Reset:
+              $ref: '#/components/headers/RateReset'
+            RateLimit-Limit:
+              $ref: '#/components/headers/RateLimit'
+            RateLimit-Remaining:
+              $ref: '#/components/headers/RateRemaining'
+            RateLimit-Reset:
+              $ref: '#/components/headers/RateReset'
+            Idempotency-Replayed:
+              $ref: '#/components/headers/IdempotencyReplayed'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+      x-auth-mode: api_key
+      x-required-scope: keys
+      x-required-scopes:
+      - keys
+      x-scope-policy: required
+      x-billing-code: null
+      x-offering: cua
+      x-feature-flag: PUBLIC_CUA_API_ENABLED
+      x-idempotency: none
+  /v1/llm/keys:
+    get:
+      tags:
+      - keys
+      operationId: listLlmKeys
+      summary: List stored BYOK LLM keys
+      description: 'Scope: `llm_keys` (granted to new live keys by default). Requires a live API key; sandbox keys cannot inspect the production credential store. Returns non-secret metadata only — provider, sha256-prefix fingerprint, timestamps. The key itself is never returned.'
+      security:
+      - apiKey: []
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Stored keys (non-secret metadata).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListLlmKeysResponse'
+          headers:
+            X-Coasty-Request-Id:
+              $ref: '#/components/headers/CoastyRequestId'
+            X-Coasty-Key-Kind:
+              $ref: '#/components/headers/KeyKind'
+            X-Coasty-Test-Mode:
+              $ref: '#/components/headers/TestMode'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+      x-auth-mode: api_key
+      x-required-scope: llm_keys
+      x-required-scopes:
+      - llm_keys
+      x-scope-policy: required
+      x-billing-code: null
+      x-offering: llm_keys
+      x-feature-flag: PUBLIC_LLM_KEYS_API_ENABLED
+      x-idempotency: none
+  /v1/llm/keys/{provider}:
+    parameters:
+    - name: provider
+      in: path
+      required: true
+      description: 'The BYOK provider: anthropic or openai. ''managed'' has no storable key and any other value is 422 LLM_PROVIDER_UNSUPPORTED.'
+      schema:
+        type: string
+        enum:
+        - anthropic
+        - openai
+    put:
+      tags:
+      - keys
+      operationId: storeLlmKey
+      summary: Store (upsert) your own provider LLM key
+      description: 'Scope: `llm_keys`. Requires a live API key; sandbox keys cannot modify the production credential store. Stores the caller''s own Anthropic/OpenAI API key for BYOK, AES-256-GCM encrypted at rest. The plaintext key exists only in this request body; every response carries only the non-secret sha256-prefix `key_fingerprint` — the key is never returned, logged, or echoed again. Naturally idempotent (an upsert), so no Idempotency-Key is needed.'
+      security:
+      - apiKey: []
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoreLlmKeyRequest'
+            example:
+              api_key: sk-ant-your_key_here
+      responses:
+        '200':
+          description: Key stored (fingerprint only; the key is never returned again).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoreLlmKeyResponse'
+              example:
+                provider: anthropic
+                key_fingerprint: a1b2c3d4
+                stored: true
+          headers:
+            X-Coasty-Request-Id:
+              $ref: '#/components/headers/CoastyRequestId'
+            X-Coasty-Key-Kind:
+              $ref: '#/components/headers/KeyKind'
+            X-Coasty-Test-Mode:
+              $ref: '#/components/headers/TestMode'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+      x-auth-mode: api_key
+      x-required-scope: llm_keys
+      x-required-scopes:
+      - llm_keys
+      x-scope-policy: required
+      x-billing-code: null
+      x-offering: llm_keys
+      x-feature-flag: PUBLIC_LLM_KEYS_API_ENABLED
+      x-idempotency: none
+    delete:
+      tags:
+      - keys
+      operationId: deleteLlmKey
+      summary: Delete your stored BYOK LLM key
+      description: 'Scope: `llm_keys`. Requires a live API key; sandbox keys cannot modify the production credential store. Deletes the stored key for the provider — 404 LLM_KEY_NOT_FOUND when none exists. Schedules that opted into this provider then fail loudly at fire time with LLM_KEY_NOT_CONFIGURED; they never silently run on Coasty''s platform keys.'
+      security:
+      - apiKey: []
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteLlmKeyResponse'
+              example:
+                deleted: true
+          headers:
+            X-Coasty-Request-Id:
+              $ref: '#/components/headers/CoastyRequestId'
+            X-Coasty-Key-Kind:
+              $ref: '#/components/headers/KeyKind'
+            X-Coasty-Test-Mode:
+              $ref: '#/components/headers/TestMode'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+      x-auth-mode: api_key
+      x-required-scope: llm_keys
+      x-required-scopes:
+      - llm_keys
+      x-scope-policy: required
+      x-billing-code: null
+      x-offering: llm_keys
+      x-feature-flag: PUBLIC_LLM_KEYS_API_ENABLED
+      x-idempotency: none
+components:
+  schemas:
+    UsageSummaryResponse:
+      type: object
+      required:
+      - period
+      properties:
+        period:
+          type: string
+        total_requests:
+          type: integer
+          default: 0
+        total_credits:
+          type: integer
+          default: 0
+        total_cost_cents:
+          type: integer
+          default: 0
+        breakdown:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/EndpointUsage'
+        balance:
+          type: integer
+          default: 0
+        wallet_balance_cents:
+          type: integer
+          default: 0
+        wallet_balance_usd:
+          type: number
+          default: 0
+    StoreLlmKeyResponse:
+      type: object
+      required:
+      - provider
+      - key_fingerprint
+      - stored
+      properties:
+        provider:
+          type: string
+          enum:
+          - anthropic
+          - openai
+        key_fingerprint:
+          type: string
+          description: Non-secret sha256-prefix fingerprint of the stored key. The key itself is never returned again.
+        stored:
+          type: boolean
+          enum:
+          - true
+    StoreLlmKeyRequest:
+      type: object
+      required:
+      - api_key
+      additionalProperties: false
+      properties:
+        api_key:
+          type: string
+          minLength: 16
+          maxLength: 512
+          description: Your own provider API key (sk-ant-... for anthropic, sk-... for openai). AES-256-GCM encrypted at rest; never returned or logged.
+    ApiError:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          required:
+          - code
+          - message
+          - type
+          - retryable
+          - retry_with_same_idempotency_key
+          - request_id
+          properties:
+            code:
+              type: string
+              description: Stable machine-readable error code (e.g. INVALID_API_KEY, INSUFFICIENT_CREDITS).
+              examples:
+              - INVALID_API_KEY
+            message:
+              type: string
+              description: Human-readable explanation. May include suggestions or examples.
+            type:
+              type: string
+              enum:
+              - auth_error
+              - validation_error
+              - rate_limit_error
+              - billing_error
+              - not_found_error
+              - state_error
+              - server_error
+              - client_error
+            request_id:
+              type: string
+              description: Server-assigned correlation ID. Include in support requests.
+              examples:
+              - req_a1b2c3d4e5f6
+            suggestion:
+              type: string
+              description: A concrete next step, auto-filled per code. LLM agents can act on it to self-recover.
+            retryable:
+              type: boolean
+              description: 'true when retrying the same call may succeed (transient server failures + back-pressure: INTERNAL_ERROR, DB_UNAVAILABLE, SERVICE_UNAVAILABLE, UPSTREAM_*, PREDICTION_FAILED, *_FAILED, RATE_LIMITED, TOO_MANY_RUNS, IDEMPOTENCY_IN_FLIGHT, ...). false for deterministic client errors. A CUA BILLING_UNAVAILABLE caused by refund uncertainty is false unless the server confirmed a shared recovery checkpoint. Present on EVERY error envelope, including gateway/5xx/timeout paths.'
+            retry_with_same_idempotency_key:
+              type: boolean
+              description: 'true only when the concrete response permits replay, the original operation is one of the exact 18 reserve-and-replay operations, and that original request already carried the key. Reuse that SAME key and identical body. A retryable error alone does not make an operation idempotent, and a key cannot be added retroactively. For CUA refund uncertainty this is true only after an exact shared checkpoint was confirmed; unkeyed or uncheckpointed responses are false and must not be retried automatically. A confirmed refunded failure sets this false even when retryable remains true: use a new key, because the old debit is compensated and wallet-guarded by IDEMPOTENCY_ALREADY_REFUNDED. false for deterministic errors.'
+            retry_after:
+              type:
+              - integer
+              - 'null'
+              description: Seconds to wait before retrying (accompanies retryable:true back-pressure codes; mirrors the Retry-After header).
+            examples:
+              type: object
+              additionalProperties: true
+              description: 'Machine-readable limits for self-correction. On PAYLOAD_TOO_LARGE / INVALID_SCREENSHOT: { max_base64_bytes: 10485760, max_mb: 10, min_base64_chars: 100, formats: ["png","jpeg"] }.'
+    RevokeAPIKeyResponse:
+      type: object
+      required:
+      - status
+      - key_id
+      properties:
+        status:
+          type: string
+          enum:
+          - ok
+        key_id:
+          type: string
+    CreateAPIKeyRequest:
+      type: object
+      required:
+      - name
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: .*\S.*
+        scopes:
+          type: array
+          maxItems: 23
+          uniqueItems: true
+          items:
+            type: string
+            enum:
+            - predict
+            - session
+            - ground
+            - parse
+            - keys
+            - usage
+            - machines:read
+            - machines:write
+            - actions:exec
+            - terminal:exec
+            - files:read
+            - files:write
+            - browser:execute
+            - snapshots:write
+            - connection:read
+            - schedules:read
+            - schedules:write
+            - triggers:write
+            - runs:read
+            - runs:write
+            - workflows:read
+            - workflows:write
+            - llm_keys
+          default:
+          - predict
+          - session
+          - ground
+          - parse
+          - machines:read
+          - machines:write
+          - actions:exec
+          - terminal:exec
+          - files:read
+          - files:write
+          - snapshots:write
+          - runs:read
+          - runs:write
+          - workflows:read
+          - workflows:write
+          - llm_keys
+          description: Omit or send [] for the server default shown here. connection:read and browser:execute are always opt-in high-risk scopes.
+    APIKeyListItem:
+      type: object
+      required:
+      - key_id
+      - name
+      - tier
+      - scopes
+      - created_at
+      - key_prefix
+      properties:
+        key_id:
+          type: string
+        name:
+          type: string
+        tier:
+          type: string
+        scopes:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+        last_used_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        key_prefix:
+          type: string
+          description: Stored 16-character identification prefix; never the full secret.
+    LlmKeyListItem:
+      type: object
+      required:
+      - provider
+      - key_fingerprint
+      properties:
+        provider:
+          type: string
+          enum:
+          - anthropic
+          - openai
+        key_fingerprint:
+          type: string
+        created_at:
+          type:
+          - string
+          - 'null'
+        updated_at:
+          type:
+          - string
+          - 'null'
+    ListLlmKeysResponse:
+      type: object
+      required:
+      - keys
+      properties:
+        keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/LlmKeyListItem'
+    DeleteLlmKeyResponse:
+      type: object
+      required:
+      - deleted
+      properties:
+        deleted:
+          type: boolean
+          enum:
+          - true
+    APIKeyResponse:
+      type: object
+      required:
+      - key
+      - key_id
+      - name
+      - tier
+      - scopes
+      - created_at
+      properties:
+        key:
+          type: string
+          description: The raw API key. Returned ONCE only.
+        key_id:
+          type: string
+        name:
+          type: string
+        tier:
+          type: string
+          enum:
+          - free
+          - starter
+          - professional
+          - enterprise
+        scopes:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+    IdempotencyLookupResponse:
+      type: object
+      required:
+      - status
+      - request_id
+      description: Result of GET /v1/idempotency/{key}. 'completed' returns the original response body + original_status; 'processing' means the original is still running; an unknown/expired key is a 404 NOT_FOUND.
+      properties:
+        status:
+          type: string
+          enum:
+          - completed
+          - processing
+          description: completed = a cached result is included; processing = the original is still executing.
+        request_id:
+          type: string
+        result:
+          anyOf:
+          - description: The original response body, verbatim. Present only when status is 'completed'.
+          - type: 'null'
+        original_status:
+          type:
+          - integer
+          - 'null'
+          description: The HTTP status the original response returned (e.g. 200). Present only when status is 'completed'.
+    EndpointUsage:
+      type: object
+      properties:
+        requests:
+          type: integer
+          default: 0
+        credits:
+          type: integer
+          default: 0
+  headers:
+    CreditsCharged:
+      description: Credits charged by this response (zero for sandbox keys and stored replays).
+      schema:
+        type: integer
+        minimum: 0
+    RateReset:
+      description: Unix timestamp when the current rate window resets.
+      schema:
+        type: integer
+        minimum: 0
+    RetryAfter:
+      description: Seconds to wait before retrying. Present on retryable back-pressure and transient failures.
+      schema:
+        type: integer
+        minimum: 0
+    CoastyRequestId:
+      description: Coasty correlation identifier for this request.
+      schema:
+        type: string
+    TestMode:
+      description: true when the request executed against the sandbox namespace.
+      schema:
+        type: boolean
+    IdempotencyReplayed:
+      description: true when this response replays a completed attempt; false for a fresh execution.
+      schema:
+        type: boolean
+    KeyKind:
+      description: Whether the authenticated key is live or test.
+      schema:
+        type: string
+        enum:
+        - live
+        - test
+        - legacy
+    CreditsRefunded:
+      description: Credits durably returned to the wallet after a failed billed operation.
+      schema:
+        type: integer
+        minimum: 1
+    RateLimit:
+      description: Effective request limit for the current window.
+      schema:
+        type: integer
+        minimum: 0
+    CreditsRemaining:
+      description: Authoritative post-charge API-wallet balance in USD cents, when available.
+      schema:
+        type: integer
+        minimum: 0
+    RateRemaining:
+      description: Requests remaining in the current window.
+      schema:
+        type: integer
+        minimum: 0
+  responses:
+    RateLimited:
+      description: Rate or concurrency limit exceeded.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: RATE_LIMIT_EXCEEDED
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    BadRequest:
+      description: Invalid request body or parameters.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: VALIDATION_ERROR
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    GatewayTimeout:
+      description: An upstream dependency timed out.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: UPSTREAM_TIMEOUT
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    PayloadTooLarge:
+      description: The request body exceeds the endpoint limit.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: PAYLOAD_TOO_LARGE
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    ServiceUnavailable:
+      description: A required service is temporarily unavailable.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: SERVICE_UNAVAILABLE
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    NotFound:
+      description: Resource not found in this key's namespace.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: NOT_FOUND
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    BadGateway:
+      description: An upstream dependency returned an invalid response.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: UPSTREAM_ERROR
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    Forbidden:
+      description: API key lacks the required scope or tier-feature is unavailable on the caller's plan.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: INSUFFICIENT_SCOPE
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    UnprocessableEntity:
+      description: The JSON shape is valid but one or more values violate the endpoint contract.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: VALIDATION_ERROR
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    Conflict:
+      description: The resource state conflicts with this operation.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: CONFLICT
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    Unauthorized:
+      description: 'Missing, invalid, or revoked API key. Pass `X-API-Key: sk-coasty-live-...` (or test).'
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: INVALID_API_KEY
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    ServerError:
+      description: Unexpected server error. Retry with exponential backoff.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: INTERNAL_ERROR
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+  parameters:
+    IdempotencyKeyPath:
+      name: key
+      in: path
+      required: true
+      description: The Idempotency-Key whose result you want to collect (≤128 chars, [A-Za-z0-9_-:]).
+      schema:
+        type: string
+        maxLength: 128
+        pattern: ^[A-Za-z0-9_\-:]+$
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      name: X-API-Key
+      in: header
+      description: 'Coasty API key. Live: `sk-coasty-live-...`. Sandbox: `sk-coasty-test-...`.'
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Coasty API key (sk-coasty-{live,test}-...)
+      description: Equivalent to X-API-Key. Use whichever your client supports.
+    webhookHmac:
+      type: apiKey
+      name: Coasty-Signature
+      in: header
+      description: 'HMAC-SHA256 credential for external schedule webhooks: t=<unix_ts>,v1=<hex_digest>.'
+    webhookHmacLegacy:
+      type: apiKey
+      name: X-Coasty-Signature
+      in: header
+      description: Compatibility alias for the Coasty-Signature HMAC credential.
+x-logo:
+  url: https://coasty.ai/logo_dark.svg
+  altText: Coasty
+  backgroundColor: '#FFFFFF'
+x-mcp-server:
+  name: '@coasty/mcp'
+  install: npx -y @coasty/mcp
+  description: Coasty's Model Context Protocol server. Wires the /v1/* surface plus pricing into any MCP-compatible client (Claude Desktop, Cursor, etc.).
+  homepage: https://coasty.ai/mcp

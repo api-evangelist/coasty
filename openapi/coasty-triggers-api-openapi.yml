@@ -1,0 +1,992 @@
+openapi: 3.1.0
+info:
+  title: Coasty Public keys triggers API
+  version: 1.0.0
+  summary: Computer Use Agents, scheduled automation, and managed VMs.
+  description: "# Coasty Public API\n\nCoasty is a Computer Use Agent (CUA) platform: predict actions from screenshots,\nprovision managed VMs, and run scheduled automation against them.\n\n## Authentication\n\nAll endpoints (except `/v1/triggers/webhook/{webhook_id}` and health checks) require an API key.\nPass it as either:\n\n- `X-API-Key: sk-coasty-live-...` (or `sk-coasty-test-...` for sandbox)\n- `Authorization: Bearer sk-coasty-live-...`\n\nThe external webhook endpoint does not use an API key, but it is authenticated:\nsend the HMAC-SHA256 `Coasty-Signature` credential documented on that operation.\n\nTest-mode keys (`sk-coasty-test-*`) hit the same validation paths as live keys but\nreturn mock VMs / mock action results and never bill credits — ideal for CI.\n\n## Pricing & budgeting\n\nPer-call rates (subject to change — see `lib/pricing/tiers.ts METERED_RATES`):\n\n| Endpoint | Credits |\n|---|---|\n| `POST /v1/predict` | ~5 |\n| `POST /v1/sessions` | 10 |\n| `POST /v1/sessions/{id}/predict` | ~4 |\n| `POST /v1/ground` | ~3 |\n| `POST /v1/parse` | 0 (free) |\n\nLong-running CUA jobs orchestrated through the dashboard (not this API) bill at\n10 credits/minute with a 20-credit minimum. Subscription tiers (`free | starter |\nprofessional | enterprise`) gate feature availability (e.g. custom system prompts),\nschedule counts, and the maximum trajectory length.\n\n## Errors\n\nEvery error response uses the same envelope:\n\n```json\n{\n  \"error\": {\n    \"code\": \"INSUFFICIENT_CREDITS\",\n    \"message\": \"Need 5, have 2.\",\n    \"type\": \"billing_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}\n```\n\nInclude the `request_id` in support requests.\n\n## Idempotency\n\nOperations marked `x-idempotency: reserve-and-replay` accept `Idempotency-Key:\n<≤128 chars of [A-Za-z0-9_-:]>`. Replays\nof the same key + identical body return the original response (with\n`X-Coasty-Idempotent-Replay: true`) for 24 h. Reusing the key with a different body\nis a 422 `IDEMPOTENCY_KEY_REUSED`.\nOperations marked `x-idempotency: webhook-payload-dedup` instead deduplicate the\nsame webhook id + identical raw body for 60 seconds; they do not accept an\nIdempotency-Key.\n\n## Clients & MCP\n\nUse the HTTP API directly from any language. Official TypeScript and Python SDKs\nare not currently published; generate a client from this OpenAPI document if needed.\n- MCP server: `npx -y @coasty/mcp` (see `x-mcp-server`)\n\n## Reference\n\nComplete (machine-readable) spec is hosted at `/.well-known/openapi.json` and\n`/openapi.json` (Stripe / Vercel conventions)."
+  contact:
+    name: Coasty Developer Support
+    url: https://coasty.ai/support
+    email: founders@coasty.ai
+  license:
+    name: MIT
+    identifier: MIT
+  termsOfService: https://coasty.ai/terms
+servers:
+- url: https://coasty.ai
+  description: Production
+- url: https://coasty.ai
+  description: Sandbox — use sk-coasty-test-* keys against the same host. No billing, mock VMs.
+security:
+- apiKey: []
+- bearerAuth: []
+tags:
+- name: triggers
+  description: Webhook and chain triggers for schedules.
+paths:
+  /v1/schedules/{schedule_id}/triggers:
+    parameters:
+    - $ref: '#/components/parameters/ScheduleId'
+    get:
+      tags:
+      - triggers
+      operationId: listTriggers
+      summary: List triggers attached to a schedule
+      security:
+      - apiKey: []
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Triggers.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListTriggersResponse'
+          headers:
+            X-Coasty-Request-Id:
+              $ref: '#/components/headers/CoastyRequestId'
+            X-Coasty-Key-Kind:
+              $ref: '#/components/headers/KeyKind'
+            X-Coasty-Test-Mode:
+              $ref: '#/components/headers/TestMode'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+      x-auth-mode: api_key
+      x-required-scope: schedules:read
+      x-required-scopes:
+      - schedules:read
+      x-scope-policy: required
+      x-billing-code: null
+      x-offering: schedules
+      x-feature-flag: PUBLIC_SCHEDULES_API_ENABLED
+      x-idempotency: none
+    post:
+      tags:
+      - triggers
+      operationId: addTrigger
+      summary: Add a trigger (webhook | chain)
+      description: For `webhook`, the response includes a one-time HMAC `webhook_secret` — store it now or rotate the trigger. Chain triggers support a max depth of 5.
+      security:
+      - apiKey: []
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TriggerCreateRequest'
+      responses:
+        '200':
+          description: Trigger created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TriggerResponse'
+          headers:
+            X-Coasty-Request-Id:
+              $ref: '#/components/headers/CoastyRequestId'
+            X-Coasty-Key-Kind:
+              $ref: '#/components/headers/KeyKind'
+            X-Coasty-Test-Mode:
+              $ref: '#/components/headers/TestMode'
+            X-Coasty-Idempotent-Replay:
+              $ref: '#/components/headers/IdempotentReplay'
+            Idempotency-Status:
+              $ref: '#/components/headers/IdempotencyStatus'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+      x-auth-mode: api_key
+      x-required-scope: triggers:write
+      x-required-scopes:
+      - triggers:write
+      x-scope-policy: required
+      x-billing-code: null
+      x-offering: schedules
+      x-feature-flag: PUBLIC_SCHEDULES_API_ENABLED
+      x-idempotency: reserve-and-replay
+  /v1/schedules/{schedule_id}/triggers/{trigger_id}:
+    parameters:
+    - $ref: '#/components/parameters/ScheduleId'
+    - $ref: '#/components/parameters/TriggerId'
+    delete:
+      tags:
+      - triggers
+      operationId: removeTrigger
+      summary: Remove a trigger
+      security:
+      - apiKey: []
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Removed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteTriggerResponse'
+          headers:
+            X-Coasty-Request-Id:
+              $ref: '#/components/headers/CoastyRequestId'
+            X-Coasty-Key-Kind:
+              $ref: '#/components/headers/KeyKind'
+            X-Coasty-Test-Mode:
+              $ref: '#/components/headers/TestMode'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+      x-auth-mode: api_key
+      x-required-scope: triggers:write
+      x-required-scopes:
+      - triggers:write
+      x-scope-policy: required
+      x-billing-code: null
+      x-offering: schedules
+      x-feature-flag: PUBLIC_SCHEDULES_API_ENABLED
+      x-idempotency: none
+  /v1/triggers/webhook/{webhook_id}:
+    parameters:
+    - $ref: '#/components/parameters/WebhookId'
+    post:
+      tags:
+      - triggers
+      operationId: fireWebhook
+      summary: Fire a schedule from an HMAC-authenticated external webhook
+      description: 'No Coasty API key is used. The request is authenticated with HMAC-SHA256 over `<unix_ts>.<body>` using the secret from trigger creation. Send either `Coasty-Signature: t=<ts>,v1=<sig>` or its `X-Coasty-Signature` compatibility alias. Replay window 5 minutes. Body capped at 1 MB. Repeated identical (webhook_id, body) within 60s are deduped.'
+      security:
+      - webhookHmac: []
+      - webhookHmacLegacy: []
+      parameters:
+      - name: Coasty-Signature
+        in: header
+        required: false
+        description: Primary HMAC credential. Exactly one supported signature header is required.
+        schema:
+          type: string
+          examples:
+          - t=1714900000,v1=4d2f...e7
+      - name: X-Coasty-Signature
+        in: header
+        required: false
+        description: Compatibility alias for Coasty-Signature. Send one signature header, not both.
+        schema:
+          type: string
+          examples:
+          - t=1714900000,v1=4d2f...e7
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+          text/plain:
+            schema:
+              type: string
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: Webhook accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookFireResponse'
+          headers:
+            X-Coasty-Request-Id:
+              $ref: '#/components/headers/CoastyRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '402':
+          $ref: '#/components/responses/PaymentRequired'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '413':
+          description: Body exceeds 1 MB.
+          headers:
+            X-Coasty-Request-Id:
+              $ref: '#/components/headers/CoastyRequestId'
+            Retry-After:
+              $ref: '#/components/headers/RetryAfter'
+            X-Credits-Charged:
+              $ref: '#/components/headers/CreditsCharged'
+            X-Credits-Refunded:
+              $ref: '#/components/headers/CreditsRefunded'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                error:
+                  code: PAYLOAD_TOO_LARGE
+                  message: An error occurred. See `code` for details.
+                  type: validation_error
+                  request_id: req_a1b2c3d4e5f6
+                  retryable: false
+                  retry_with_same_idempotency_key: false
+        '429':
+          description: Webhook per-minute rate limit exceeded. Honor Retry-After.
+          headers:
+            X-Coasty-Request-Id:
+              $ref: '#/components/headers/CoastyRequestId'
+            Retry-After:
+              $ref: '#/components/headers/RetryAfter'
+            X-Credits-Charged:
+              $ref: '#/components/headers/CreditsCharged'
+            X-Credits-Refunded:
+              $ref: '#/components/headers/CreditsRefunded'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                error:
+                  code: RATE_LIMITED
+                  message: An error occurred. See `code` for details.
+                  type: validation_error
+                  request_id: req_a1b2c3d4e5f6
+                  retryable: false
+                  retry_with_same_idempotency_key: false
+        '500':
+          $ref: '#/components/responses/ServerError'
+      x-auth-mode: hmac_sha256
+      x-required-scope: null
+      x-required-scopes: []
+      x-scope-policy: none
+      x-billing-code: null
+      x-offering: triggers
+      x-feature-flag: PUBLIC_TRIGGERS_API_ENABLED
+      x-idempotency: webhook-payload-dedup
+  /v1/triggers/health:
+    get:
+      tags:
+      - triggers
+      operationId: triggersHealth
+      summary: Triggers API health check
+      security: []
+      responses:
+        '200':
+          description: OK.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+      x-auth-mode: public
+      x-required-scope: null
+      x-required-scopes: []
+      x-scope-policy: none
+      x-billing-code: null
+      x-offering: triggers
+      x-feature-flag: null
+      x-idempotency: none
+components:
+  headers:
+    CreditsCharged:
+      description: Credits charged by this response (zero for sandbox keys and stored replays).
+      schema:
+        type: integer
+        minimum: 0
+    RetryAfter:
+      description: Seconds to wait before retrying. Present on retryable back-pressure and transient failures.
+      schema:
+        type: integer
+        minimum: 0
+    IdempotencyStatus:
+      description: Lifecycle status of the canonical idempotent attempt when applicable.
+      schema:
+        type: string
+        enum:
+        - processing
+        - completed
+    CoastyRequestId:
+      description: Coasty correlation identifier for this request.
+      schema:
+        type: string
+    IdempotentReplay:
+      description: true when this is a stored response replay rather than a new execution.
+      schema:
+        type: boolean
+    TestMode:
+      description: true when the request executed against the sandbox namespace.
+      schema:
+        type: boolean
+    KeyKind:
+      description: Whether the authenticated key is live or test.
+      schema:
+        type: string
+        enum:
+        - live
+        - test
+        - legacy
+    CreditsRefunded:
+      description: Credits durably returned to the wallet after a failed billed operation.
+      schema:
+        type: integer
+        minimum: 1
+  responses:
+    RateLimited:
+      description: Rate or concurrency limit exceeded.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: RATE_LIMIT_EXCEEDED
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    BadRequest:
+      description: Invalid request body or parameters.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: VALIDATION_ERROR
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    GatewayTimeout:
+      description: An upstream dependency timed out.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: UPSTREAM_TIMEOUT
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    PayloadTooLarge:
+      description: The request body exceeds the endpoint limit.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: PAYLOAD_TOO_LARGE
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    NotFound:
+      description: Resource not found in this key's namespace.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: NOT_FOUND
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    ServiceUnavailable:
+      description: A required service is temporarily unavailable.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: SERVICE_UNAVAILABLE
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    BadGateway:
+      description: An upstream dependency returned an invalid response.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: UPSTREAM_ERROR
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    Forbidden:
+      description: API key lacks the required scope or tier-feature is unavailable on the caller's plan.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: INSUFFICIENT_SCOPE
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    UnprocessableEntity:
+      description: The JSON shape is valid but one or more values violate the endpoint contract.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: VALIDATION_ERROR
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    Conflict:
+      description: The resource state conflicts with this operation.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: CONFLICT
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    Unauthorized:
+      description: 'Missing, invalid, or revoked API key. Pass `X-API-Key: sk-coasty-live-...` (or test).'
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: INVALID_API_KEY
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    PaymentRequired:
+      description: Insufficient credits to perform the operation. Top up via /credits or upgrade subscription.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: INSUFFICIENT_CREDITS
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    ServerError:
+      description: Unexpected server error. Retry with exponential backoff.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: INTERNAL_ERROR
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: 'Optional client-supplied key (≤128 chars, [A-Za-z0-9_-:]) for safe retries. ''Same request'' = a SHA-256 of the canonical (sorted-key) JSON body (session_id is folded in for /sessions/{id}/predict). Replays the original response for 24 h when the body hash matches (X-Coasty-Idempotent-Replay: true and X-Credits-Charged: 0). Inference replays also set body usage.credits_charged=0 and usage.billed=false; machine-snapshot bodies retain the original gross charge for auditability. A retry while the original is still running waits up to ~25 s then returns the result, otherwise 409 IDEMPOTENCY_IN_FLIGHT (retry with the SAME key). Returns 422 IDEMPOTENCY_KEY_REUSED if the body differs. Collect a lost result via GET /v1/idempotency/{key}.'
+      schema:
+        type: string
+        maxLength: 128
+        pattern: ^[A-Za-z0-9_\-:]+$
+      examples:
+        uuid:
+          value: 550e8400-e29b-41d4-a716-446655440000
+    WebhookId:
+      name: webhook_id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: ^whk_[0-9a-f]{8,48}$
+    TriggerId:
+      name: trigger_id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: ^trg_[0-9a-f]{8,32}$
+    ScheduleId:
+      name: schedule_id
+      in: path
+      required: true
+      description: Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys.
+      schema:
+        type: string
+        pattern: ^(?:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}|sch_test_[0-9a-f]{8,32})$
+  schemas:
+    TriggerListItem:
+      type: object
+      required:
+      - id
+      - schedule_id
+      - kind
+      - enabled
+      - created_at
+      description: Persisted trigger view. The one-time webhook_secret returned during creation is deliberately absent.
+      properties:
+        id:
+          type: string
+        schedule_id:
+          type: string
+        kind:
+          type: string
+        enabled:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        webhook_url:
+          type:
+          - string
+          - 'null'
+        email_address:
+          type:
+          - string
+          - 'null'
+        source_schedule_id:
+          type:
+          - string
+          - 'null'
+        event:
+          type:
+          - string
+          - 'null'
+    ApiError:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          required:
+          - code
+          - message
+          - type
+          - retryable
+          - retry_with_same_idempotency_key
+          - request_id
+          properties:
+            code:
+              type: string
+              description: Stable machine-readable error code (e.g. INVALID_API_KEY, INSUFFICIENT_CREDITS).
+              examples:
+              - INVALID_API_KEY
+            message:
+              type: string
+              description: Human-readable explanation. May include suggestions or examples.
+            type:
+              type: string
+              enum:
+              - auth_error
+              - validation_error
+              - rate_limit_error
+              - billing_error
+              - not_found_error
+              - state_error
+              - server_error
+              - client_error
+            request_id:
+              type: string
+              description: Server-assigned correlation ID. Include in support requests.
+              examples:
+              - req_a1b2c3d4e5f6
+            suggestion:
+              type: string
+              description: A concrete next step, auto-filled per code. LLM agents can act on it to self-recover.
+            retryable:
+              type: boolean
+              description: 'true when retrying the same call may succeed (transient server failures + back-pressure: INTERNAL_ERROR, DB_UNAVAILABLE, SERVICE_UNAVAILABLE, UPSTREAM_*, PREDICTION_FAILED, *_FAILED, RATE_LIMITED, TOO_MANY_RUNS, IDEMPOTENCY_IN_FLIGHT, ...). false for deterministic client errors. A CUA BILLING_UNAVAILABLE caused by refund uncertainty is false unless the server confirmed a shared recovery checkpoint. Present on EVERY error envelope, including gateway/5xx/timeout paths.'
+            retry_with_same_idempotency_key:
+              type: boolean
+              description: 'true only when the concrete response permits replay, the original operation is one of the exact 18 reserve-and-replay operations, and that original request already carried the key. Reuse that SAME key and identical body. A retryable error alone does not make an operation idempotent, and a key cannot be added retroactively. For CUA refund uncertainty this is true only after an exact shared checkpoint was confirmed; unkeyed or uncheckpointed responses are false and must not be retried automatically. A confirmed refunded failure sets this false even when retryable remains true: use a new key, because the old debit is compensated and wallet-guarded by IDEMPOTENCY_ALREADY_REFUNDED. false for deterministic errors.'
+            retry_after:
+              type:
+              - integer
+              - 'null'
+              description: Seconds to wait before retrying (accompanies retryable:true back-pressure codes; mirrors the Retry-After header).
+            examples:
+              type: object
+              additionalProperties: true
+              description: 'Machine-readable limits for self-correction. On PAYLOAD_TOO_LARGE / INVALID_SCREENSHOT: { max_base64_bytes: 10485760, max_mb: 10, min_base64_chars: 100, formats: ["png","jpeg"] }.'
+    HealthResponse:
+      type: object
+      required:
+      - status
+      properties:
+        status:
+          type: string
+          enum:
+          - ok
+        api_version:
+          type: string
+        service:
+          type: string
+    TriggerResponse:
+      type: object
+      required:
+      - id
+      - schedule_id
+      - kind
+      - enabled
+      - created_at
+      properties:
+        id:
+          type: string
+        schedule_id:
+          type: string
+        kind:
+          type: string
+        enabled:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        webhook_url:
+          type:
+          - string
+          - 'null'
+        webhook_secret:
+          type:
+          - string
+          - 'null'
+          description: HMAC secret. Returned on creation and identical idempotent replays. Stored only as versioned AES-GCM ciphertext.
+        email_address:
+          type:
+          - string
+          - 'null'
+        source_schedule_id:
+          type:
+          - string
+          - 'null'
+        event:
+          type:
+          - string
+          - 'null'
+    TriggerCreateRequest:
+      type: object
+      required:
+      - kind
+      additionalProperties: false
+      properties:
+        kind:
+          type: string
+          enum:
+          - webhook
+          - chain
+        source_schedule_id:
+          type:
+          - string
+          - 'null'
+          maxLength: 64
+        event:
+          type: string
+          enum:
+          - on_complete
+          - on_failure
+          - on_any
+          default: on_complete
+        pass_output:
+          type: boolean
+          default: true
+        rate_limit_per_minute:
+          type: integer
+          minimum: 1
+          maximum: 600
+          default: 60
+        enabled:
+          type: boolean
+          default: true
+    DeleteTriggerResponse:
+      type: object
+      required:
+      - deleted
+      - trigger_id
+      - request_id
+      properties:
+        deleted:
+          type: boolean
+        trigger_id:
+          type: string
+        request_id:
+          type: string
+    WebhookFireResponse:
+      type: object
+      required:
+      - received
+      - schedule_id
+      - message
+      - request_id
+      properties:
+        received:
+          type: boolean
+        schedule_id:
+          type: string
+        run_id:
+          type:
+          - string
+          - 'null'
+        deduplicated:
+          type: boolean
+          default: false
+        message:
+          type: string
+        request_id:
+          type: string
+    ListTriggersResponse:
+      type: object
+      required:
+      - data
+      - request_id
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TriggerListItem'
+        request_id:
+          type: string
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      name: X-API-Key
+      in: header
+      description: 'Coasty API key. Live: `sk-coasty-live-...`. Sandbox: `sk-coasty-test-...`.'
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Coasty API key (sk-coasty-{live,test}-...)
+      description: Equivalent to X-API-Key. Use whichever your client supports.
+    webhookHmac:
+      type: apiKey
+      name: Coasty-Signature
+      in: header
+      description: 'HMAC-SHA256 credential for external schedule webhooks: t=<unix_ts>,v1=<hex_digest>.'
+    webhookHmacLegacy:
+      type: apiKey
+      name: X-Coasty-Signature
+      in: header
+      description: Compatibility alias for the Coasty-Signature HMAC credential.
+x-logo:
+  url: https://coasty.ai/logo_dark.svg
+  altText: Coasty
+  backgroundColor: '#FFFFFF'
+x-mcp-server:
+  name: '@coasty/mcp'
+  install: npx -y @coasty/mcp
+  description: Coasty's Model Context Protocol server. Wires the /v1/* surface plus pricing into any MCP-compatible client (Claude Desktop, Cursor, etc.).
+  homepage: https://coasty.ai/mcp
