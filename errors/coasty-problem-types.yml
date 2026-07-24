@@ -1,0 +1,75 @@
+generated: '2026-07-18'
+method: searched
+source: https://coasty.ai/docs
+format: custom-json
+envelope_field: error
+problem_json: false
+notes: >-
+  Coasty returns a structured JSON error envelope (not RFC 9457
+  application/problem+json). Each error carries code, message, type, request_id,
+  and the retry hints retryable + retry_with_same_idempotency_key. Optional
+  suggestion and docs_url fields aid self-service recovery.
+problems:
+- status: 401
+  code: INVALID_API_KEY
+  type: auth_error
+  title: API key is invalid or has been revoked
+  remediation: Use the raw key in the X-API-Key header (no Bearer prefix), or mint a new key.
+  retryable: false
+- status: 403
+  code: INSUFFICIENT_SCOPE
+  type: auth_error
+  title: Key lacks the scope required for this operation
+  remediation: Re-mint the key with the required scope (e.g. runs:write, machines:read).
+  retryable: false
+- status: 402
+  code: INSUFFICIENT_CREDITS
+  type: billing_error
+  title: API wallet balance too low
+  remediation: Add wallet funds or use a free sk-coasty-test-* sandbox key.
+  retryable: false
+- status: 422
+  code: VALIDATION_ERROR
+  type: validation_error
+  title: Request failed validation
+  remediation: Inspect error.details for the offending field.
+  retryable: false
+- status: 422
+  code: INVALID_SCREENSHOT
+  type: validation_error
+  title: Screenshot payload invalid
+  remediation: "Strip the data: prefix; send a base64 PNG or JPEG."
+  retryable: false
+- status: 404
+  code: NOT_FOUND
+  type: not_found_error
+  title: Resource unknown, expired, or mode-isolated
+  remediation: Verify the id; test-mode and live-mode resources are isolated.
+  retryable: false
+- status: 409
+  code: INVALID_STATE
+  type: conflict_error
+  title: Machine/run state conflicts with the operation
+  remediation: Check current resource state before start/stop/restart or resume.
+  retryable: false
+- status: 409
+  code: IDEMPOTENCY_IN_FLIGHT
+  type: conflict_error
+  title: A request with this Idempotency-Key is still in flight
+  remediation: Wait and retry with the same Idempotency-Key, or fetch GET /v1/idempotency/{key}.
+  retryable: true
+- status: 429
+  code: LLM_PROVIDER_RATE_LIMITED
+  type: rate_limit_error
+  title: Upstream model provider rate limited the request
+  remediation: Honor the Retry-After header; upgrade your provider tier for BYOK.
+  retryable: true
+- status: 503
+  code: BILLING_UNAVAILABLE
+  type: service_error
+  title: Billing subsystem temporarily unavailable
+  remediation: Follow the retry_with_same_idempotency_key hint exactly.
+  retryable: true
+error_code_families:
+- prefix: LLM_
+  description: BYOK provider failures surface as stable LLM_* codes; no fallback to platform keys.

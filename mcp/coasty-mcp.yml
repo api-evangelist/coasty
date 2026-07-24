@@ -1,0 +1,45 @@
+generated: '2026-07-18'
+method: searched
+status: published
+source: https://coasty.ai/.well-known/mcp/server-card.json
+server:
+  name: '@coasty/mcp'
+  title: Coasty Computer-Use
+  version: 1.1.0
+  vendor: Coasty
+  transports:
+  - stdio
+  - http
+  install: npx -y @coasty/mcp
+  remote_url: https://api.coasty.ai/mcp
+  registry: https://registry.modelcontextprotocol.io/v0/servers
+  package:
+    registry: npm
+    name: '@coasty/mcp'
+    version: 1.1.0
+  server_card: https://coasty.ai/.well-known/mcp/server-card.json
+  openapi: https://coasty.ai/.well-known/openapi.json
+  documentation: https://coasty.ai/api-docs
+  clients:
+  - Claude Desktop
+  - Claude Code
+  - Cursor
+  - Windsurf
+  - VS Code Copilot Agent
+  auth:
+    env: COASTY_API_KEY
+    key_format: sk-coasty-{live,test}-*
+tool_count: 26
+tool_groups:
+- predict
+- machines
+- schedules
+- account
+- discovery
+discovery_tools:
+- coasty_get_capabilities
+- get_pricing
+notes:
+- One-shot agent onboarding via the coasty_get_capabilities tool.
+- Same API key drives REST (/v1/*) and MCP surfaces.
+- Sandbox keys (sk-coasty-test-*) work against the MCP server free of charge.

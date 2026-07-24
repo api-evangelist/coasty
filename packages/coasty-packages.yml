@@ -1,0 +1,20 @@
+generated: '2026-07-18'
+method: searched
+source: https://registry.npmjs.org/@coasty/mcp
+notes:
+- Coasty ships no first-party client SDK library (Python/Node/Go) as of this pass;
+  the docs provide Python / Node.js / cURL cookbook examples rather than a published
+  SDK package. The only official published package is the MCP server below.
+- Probed npm (@coasty/sdk 404), PyPI (coasty 404). No first-party REST SDK found.
+packages:
+- language: javascript
+  registry: npm
+  name: '@coasty/mcp'
+  url: https://www.npmjs.com/package/@coasty/mcp
+  install: npx -y @coasty/mcp
+  version: 1.1.0
+  license: MIT
+  repository: https://github.com/coasty-ai/coasty-mcp
+  official: true
+  kind: mcp-server
+  description: MCP server for Coasty — full computer use (desktop, browser, terminal, files, schedules) from Claude Desktop, Claude Code, Cursor, Windsurf, and VS Code Copilot. 26 tools, 4-mode approval, HMAC webhooks.

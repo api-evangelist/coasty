@@ -1,0 +1,43 @@
+generated: '2026-07-18'
+method: searched
+source: https://coasty.ai/api/discovery
+signal:
+  retry_after_header: Retry-After
+  status_code: 429
+rate_limits:
+- name: webhook-fires
+  scope: per-webhook
+  limit_count: 60
+  interval: minute
+  description: Default schedule webhook fire limit.
+- name: concurrent-agents
+  scope: account-tier
+  limit_count: 5
+  interval: concurrent
+  description: Concurrent swarm agents on the Unlimited plan (abuse cap); varies by tier.
+platform_limits:
+- name: max_screenshot_base64_chars
+  value: 10485760
+- name: min_screenshot_base64_chars
+  value: 100
+- name: max_task_instruction_chars
+  value: 32000
+- name: max_prompt_component_chars
+  value: 16000
+- name: max_trajectory_steps
+  value: 20
+- name: max_filterable_tools
+  value: 8
+- name: session_inactivity_ttl_seconds
+  value: 7200
+- name: max_run_deadline_seconds
+  value: 86400
+- name: batch_actions_max
+  value: 50
+- name: machine_ttl_minutes_min
+  value: 5
+- name: machine_ttl_minutes_max
+  value: 10080
+notes:
+- Webhook fires require a $0.20 API-wallet balance as an anti-abuse gate (not a per-fire fee).
+- Rate-limit tiers scale with the subscription tier; Enterprise gets custom limits.

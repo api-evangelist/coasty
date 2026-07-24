@@ -1,0 +1,29 @@
+generated: '2026-07-18'
+method: searched
+source: https://coasty.ai/api/discovery
+docs: https://coasty.ai/docs
+summary: >-
+  Coasty ships a free sandbox on the same host and same schemas as production,
+  gated purely by the API key prefix. Sandbox keys bill zero credits and return
+  mock VMs in under 50ms, making them safe for CI/CD.
+test_vs_live:
+  mechanism: key-prefix
+  live_key_prefix: sk-coasty-live-
+  test_key_prefix: sk-coasty-test-
+  same_host: https://coasty.ai
+  schema_parity: identical validation and response contracts
+sandbox_keys:
+  cost: free — billed at 0 credits
+  mock_vm_latency_ms: 50
+  semantics: provider/model side effects are sandboxed or mocked
+  response_headers:
+  - 'X-Credits-Charged: 0'
+  - 'X-Coasty-Test-Mode: true'
+  - 'X-Coasty-Key-Kind: test'
+  limitations:
+  - Stored BYOK LLM key management (PUT /v1/llm/keys/{provider}) is live-only.
+isolation:
+  model: per-session VM-level isolation (not shared containers)
+notes:
+- No published magic test card numbers or fixture identifiers — this is an
+  agent/compute API, not a payments API; the sandbox mocks VMs and model calls.

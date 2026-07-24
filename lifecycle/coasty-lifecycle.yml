@@ -1,0 +1,25 @@
+generated: '2026-07-18'
+method: searched
+source: https://coasty.ai/api/discovery
+versioning:
+  scheme: uri-path-prefix
+  current: v1
+  docs: https://coasty.ai/docs
+  policy: >-
+    Breaking changes ship behind a new path prefix (/v2, /v3). Within a major
+    version, additive changes are allowed without notice.
+deprecation:
+  policy: Field removals require a 90-day deprecation window.
+  window_days: 90
+  sunset_header: false
+  source: https://coasty.ai/api/discovery
+status_page: https://status.coasty.ai
+health_endpoints:
+- GET /v1/health
+- GET /v1/machines/health
+- GET /v1/schedules/health
+- GET /v1/triggers/health
+sla:
+  url: null
+  uptime_target: null
+deprecated_operations: []

@@ -1,0 +1,89 @@
+generated: '2026-07-18'
+method: derived
+source: openapi/coasty-openapi-original.json
+notes: >-
+  Entity-relationship graph derived from OpenAPI component schemas and their
+  id-reference fields (machine_id, workflow_id, schedule_id, source_schedule_id).
+entities:
+- name: Machine
+  schema: MachineRecord
+  description: A sandboxed virtual machine (Linux/Windows) the agent controls.
+  key_fields: [id, display_name, status, os_type, desktop_enabled, public_ip, is_test, ttl_minutes, billing]
+- name: Session
+  description: A stateful computer-use (CUA) session for iterative predict steps.
+  key_fields: [id, status]
+- name: Run
+  schema: RunResponse
+  description: An autonomous agent run executing a task against a machine.
+  key_fields: [id, status, machine_id, task, steps_completed, credits_charged, webhook_url]
+- name: Workflow
+  schema: WorkflowResponse
+  description: A saved multi-step workflow definition (DSL) with an inputs schema.
+  key_fields: [id, name, slug, version, dsl_version, definition, status]
+- name: WorkflowRun
+  schema: WorkflowRunResponse
+  description: An execution of a workflow (saved or ad-hoc) against a machine.
+  key_fields: [id, status, workflow_id, machine_id, inputs, output, budget_cents]
+- name: Schedule
+  schema: ScheduleResponse
+  description: A recurring automation schedule (cron/frequency) that starts runs.
+  key_fields: [id, name, machine_id, cron, frequency, enabled, next_run_at, run_count]
+- name: ScheduleRun
+  schema: ScheduleRunRecord
+  description: A historical execution of a schedule.
+  key_fields: [id, schedule_id, status, trigger, executed_at]
+- name: Trigger
+  schema: TriggerResponse
+  description: A webhook or chain trigger attached to a schedule.
+  key_fields: [id, schedule_id, kind, webhook_url, source_schedule_id, event]
+- name: ApiKey
+  description: A scoped API key (live or test) minted for the account.
+  key_fields: [id, scopes, prefix]
+- name: LlmKey
+  description: A stored BYOK provider LLM key (AES-256-GCM encrypted at rest).
+  key_fields: [provider, fingerprint]
+relationships:
+- from: Run
+  to: Machine
+  kind: belongs_to
+  via: machine_id
+- from: WorkflowRun
+  to: Workflow
+  kind: belongs_to
+  via: workflow_id
+- from: WorkflowRun
+  to: Machine
+  kind: belongs_to
+  via: machine_id
+- from: Workflow
+  to: WorkflowRun
+  kind: has_many
+  via: workflow_id
+- from: Schedule
+  to: Machine
+  kind: belongs_to
+  via: machine_id
+- from: Schedule
+  to: ScheduleRun
+  kind: has_many
+  via: schedule_id
+- from: ScheduleRun
+  to: Schedule
+  kind: belongs_to
+  via: schedule_id
+- from: Schedule
+  to: Trigger
+  kind: has_many
+  via: schedule_id
+- from: Trigger
+  to: Schedule
+  kind: belongs_to
+  via: schedule_id
+- from: Trigger
+  to: Schedule
+  kind: references
+  via: source_schedule_id
+- from: Session
+  to: Machine
+  kind: operates_on
+  via: session runtime

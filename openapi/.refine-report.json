@@ -1,0 +1,28 @@
+{
+  "provider": "coasty",
+  "sources": [
+    "coasty-keys-api-openapi.yml",
+    "coasty-machines-api-openapi.yml",
+    "coasty-predict-api-openapi.yml",
+    "coasty-runs-api-openapi.yml",
+    "coasty-schedules-api-openapi.yml",
+    "coasty-sessions-api-openapi.yml",
+    "coasty-triggers-api-openapi.yml",
+    "coasty-workflows-api-openapi.yml"
+  ],
+  "outputs": [
+    "coasty-keys-api-openapi.yml",
+    "coasty-machines-api-openapi.yml",
+    "coasty-predict-api-openapi.yml",
+    "coasty-runs-api-openapi.yml",
+    "coasty-schedules-api-openapi.yml",
+    "coasty-sessions-api-openapi.yml",
+    "coasty-triggers-api-openapi.yml",
+    "coasty-workflows-api-openapi.yml"
+  ],
+  "archived": [],
+  "errors": [],
+  "warnings": [],
+  "notes": [],
+  "skipped": []
+}

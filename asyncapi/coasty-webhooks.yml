@@ -1,0 +1,50 @@
+generated: '2026-07-18'
+method: searched
+source: https://coasty.ai/docs
+spec_type: Webhooks
+summary: >-
+  Coasty delivers run/workflow lifecycle events over Server-Sent Events (live
+  streaming) and fires outbound HMAC-signed webhooks for schedule triggers and
+  terminal run states. No standalone AsyncAPI document is published (probed
+  /asyncapi.yaml -> 404); this is the captured webhook/event catalog.
+transport:
+  sse:
+    endpoints:
+    - GET /v1/runs/{run_id}/events
+    - GET /v1/workflows/runs/{run_id}/events
+    reconnect_header: Last-Event-ID
+  outbound_webhooks:
+    fire_endpoint: POST /v1/triggers/webhook/{webhook_id}
+    trigger_management:
+    - POST /v1/schedules/{schedule_id}/triggers
+    - GET /v1/schedules/{schedule_id}/triggers
+    - DELETE /v1/schedules/{schedule_id}/triggers/{trigger_id}
+security:
+  algorithm: HMAC-SHA256
+  signature_header: Coasty-Signature
+  legacy_header: X-Coasty-Signature
+  scheme: t=<unix_ts>,v1=<hex_digest>
+  replay_protection_minutes: 5
+  verification: signed_payload = "<t>." + raw_body; compare_digest(HMAC-SHA256(secret, signed_payload), v1)
+  provisioning: webhook_secret returned once on run/trigger creation
+stream_events:
+- status
+- text
+- reasoning
+- tool_call
+- tool_result
+- awaiting_human
+- resumed
+- step
+- billing
+- error
+- done
+webhook_event_types:
+- run.succeeded
+- run.failed
+- run.cancelled
+- run.timed_out
+- run.awaiting_human
+rate:
+  fire_limit_per_min: 60
+  wallet_gate_usd: 0.20

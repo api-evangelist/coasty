@@ -1,0 +1,109 @@
+generated: '2026-07-18'
+method: searched
+source: https://coasty.ai/api/discovery
+docs: https://coasty.ai/docs
+summary: >-
+  Cross-cutting request/response semantics for the Coasty Public API (/v1/*),
+  captured from the discovery manifest and API reference.
+authentication:
+  style: api-key
+  header: X-API-Key
+  bearer_alias: 'Authorization: Bearer <key>'
+  key_format: sk-coasty-{live,test}-<hex>
+  scoped: true
+  ref: authentication/coasty-authentication.yml
+idempotency:
+  supported: true
+  header: Idempotency-Key
+  max_key_length: 128
+  key_charset: '[A-Za-z0-9_-:]'
+  retention_seconds: 86400
+  retention_note: 24h reserve-and-replay safety.
+  in_flight_status: 409
+  in_flight_code: IDEMPOTENCY_IN_FLIGHT
+  lookup_endpoint: GET /v1/idempotency/{key}
+  applies_to_operations:
+  - POST /v1/predict
+  - POST /v1/sessions
+  - POST /v1/sessions/{session_id}/predict
+  - POST /v1/ground
+  - POST /v1/machines
+  - POST /v1/machines/{machine_id}/snapshot
+  - POST /v1/machines/{machine_id}/actions
+  - POST /v1/machines/{machine_id}/actions/batch
+  - POST /v1/machines/{machine_id}/browser/{op}
+  - POST /v1/machines/{machine_id}/terminal
+  not_supported_on:
+  - machine start / stop / restart
+  - machine delete / TTL updates
+pagination:
+  style: limit-based
+  request_params:
+    limit: 1-200 (default varies by endpoint)
+    filters: 'status, and other endpoint-specific query params'
+  response_fields:
+  - data
+  - has_more
+  - request_id
+request_tracing:
+  response_header: X-Coasty-Request-Id
+  error_body_field: request_id
+versioning:
+  scheme: uri-path-prefix
+  current: v1
+  policy: >-
+    Breaking changes ship behind a new path prefix (/v2, /v3). Within a major
+    version additive changes are allowed without notice; field removals require
+    a 90-day deprecation window.
+error_envelope:
+  shape:
+    error:
+      code: STRING
+      message: STRING
+      type: STRING
+      request_id: STRING
+      retryable: BOOLEAN
+      retry_with_same_idempotency_key: BOOLEAN
+      suggestion: STRING (optional)
+      docs_url: STRING (optional)
+  format: custom-json
+  problem_json: false
+  ref: errors/coasty-problem-types.yml
+rate_limit_signal:
+  retry_after_header: Retry-After
+  webhook_fire_limit_per_min: 60
+  ref: rate-limits/coasty-rate-limits.yml
+billing_signal:
+  wallet_unit: 1 credit = $0.01
+  response_headers:
+  - X-Credits-Charged
+  - X-Credits-Remaining
+  - X-Credits-Refunded
+  charge_timing: charged before execution, refunded on failure
+  sandbox_headers:
+  - 'X-Coasty-Test-Mode: true'
+  - 'X-Coasty-Key-Kind: test'
+streaming:
+  transport: server-sent-events
+  endpoints:
+  - GET /v1/runs/{run_id}/events
+  - GET /v1/workflows/runs/{run_id}/events
+  reconnect_header: Last-Event-ID
+webhooks:
+  signature_header: Coasty-Signature
+  legacy_header: X-Coasty-Signature
+  algorithm: HMAC-SHA256
+  scheme: t=<unix_ts>,v1=<hex_digest>
+  replay_protection_minutes: 5
+  ref: asyncapi/coasty-webhooks.yml
+byok:
+  request_headers:
+  - X-LLM-Provider
+  - X-LLM-Api-Key
+  - X-LLM-Model
+  no_silent_fallback: true
+compatibility:
+  http_versions: [HTTP/1.1, HTTP/2, HTTP/3]
+  tls_min: '1.2'
+  content_encodings: [gzip, br]
+  cors_wildcard: false

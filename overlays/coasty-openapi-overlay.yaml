@@ -1,0 +1,34 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for Coasty Public API
+  version: 1.0.0
+extends: openapi/coasty-openapi-original.json
+actions:
+- target: $.info
+  update:
+    x-apievangelist-enriched: '2026-07-18'
+    x-apievangelist-provider: coasty
+    x-apievangelist-category: computer-use-agents
+    x-artifacts:
+      mcp: mcp/coasty-mcp.yml
+      authentication: authentication/coasty-authentication.yml
+      conventions: conventions/coasty-conventions.yml
+      errors: errors/coasty-problem-types.yml
+      lifecycle: lifecycle/coasty-lifecycle.yml
+      sandbox: sandbox/coasty-sandbox.yml
+      webhooks: asyncapi/coasty-webhooks.yml
+      data_model: data-model/coasty-data-model.yml
+      agentic_access: agentic-access/coasty-agentic-access.yml
+- target: $.info
+  update:
+    x-idempotency:
+      header: Idempotency-Key
+      retention_seconds: 86400
+      operations: 18
+    x-webhooks:
+      algorithm: HMAC-SHA256
+      signature_header: Coasty-Signature
+      replay_protection_minutes: 5
+    x-sandbox:
+      key_prefix: sk-coasty-test-
+      cost: free

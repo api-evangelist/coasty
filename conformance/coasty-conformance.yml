@@ -1,0 +1,44 @@
+generated: '2026-07-18'
+method: derived
+source: openapi/coasty-openapi-original.json
+notes: >-
+  Derived from the OpenAPI 3.1 spec, the discovery manifest, and the API
+  reference. Coasty publishes no third-party compliance certifications
+  (SOC 2 / ISO 27001 / etc.) as of this pass, so no Compliance pointer is emitted.
+standards:
+- id: openapi-3.1
+  conforms: true
+  evidence: Published OpenAPI 3.1.0 spec at /.well-known/openapi.json (72 operations, 85 schemas).
+- id: api-key-auth
+  conforms: true
+  evidence: apiKey (X-API-Key) + http bearer securitySchemes; scoped keys.
+- id: oauth2
+  conforms: false
+  evidence: No oauth2 securitySchemes; auth is scoped API keys, not OAuth flows.
+- id: openid-connect
+  conforms: false
+  evidence: /.well-known/openid-configuration returns 404.
+- id: rfc9457-problem-details
+  conforms: false
+  evidence: Errors use a custom JSON envelope, not application/problem+json.
+- id: rfc9116-security-txt
+  conforms: true
+  evidence: /.well-known/security.txt present with Contact and Expires.
+- id: idempotency-keys
+  conforms: true
+  evidence: Idempotency-Key header with 24h reserve-and-replay across 18 operations.
+- id: pagination
+  conforms: true
+  evidence: limit-based pagination with data / has_more / request_id envelope.
+- id: hmac-webhooks
+  conforms: true
+  evidence: HMAC-SHA256 Coasty-Signature (t=,v1=) with 5-minute replay protection.
+- id: sse-streaming
+  conforms: true
+  evidence: Server-Sent Events for run and workflow-run events with Last-Event-ID replay.
+- id: mcp
+  conforms: true
+  evidence: First-party MCP server @coasty/mcp with a SEP-1649 server-card.json descriptor.
+- id: llms-txt
+  conforms: true
+  evidence: /llms.txt and /llms-full.txt published; AI-first robots.txt allowlist.

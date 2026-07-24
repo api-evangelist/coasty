@@ -1,0 +1,26 @@
+generated: '2026-07-18'
+method: searched
+host: https://coasty.ai
+documents:
+- path: /.well-known/security.txt
+  status: 200
+  file: coasty-security.txt
+- path: /.well-known/openapi.json
+  status: 200
+  file: ../openapi/coasty-openapi-original.json
+- path: /.well-known/ai-plugin.json
+  status: 200
+  file: coasty-ai-plugin.json
+- path: /.well-known/mcp/server-card.json
+  status: 200
+  file: coasty-mcp-server-card.json
+- path: /api/discovery
+  status: 200
+  file: coasty-discovery.json
+  note: Not under /.well-known/ but is Coasty's single-shot machine-readable discovery manifest.
+- path: /.well-known/openid-configuration
+  status: 404
+- path: /.well-known/oauth-authorization-server
+  status: 404
+- path: /.well-known/api-catalog
+  status: 404

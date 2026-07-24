@@ -1,0 +1,86 @@
+generated: '2026-07-18'
+method: searched
+source: https://coasty.ai/api/pricing
+currency: USD
+billing: monthly via Stripe
+model: credit-based-subscription (1 credit = $0.01 on the developer API wallet)
+plans:
+- id: starter
+  name: Starter
+  price_usd: 19
+  interval: month
+  credits_per_month: 200
+  machines_included: 1
+  swarm_agents_limit: 3
+  schedule_limit: 3
+  api_tier: starter
+- id: plus
+  name: Plus
+  price_usd: 50
+  interval: month
+  credits_per_month: 600
+  machines_included: 2
+  swarm_agents_limit: 6
+  schedule_limit: 10
+  api_tier: professional
+  highlighted: true
+- id: unlimited
+  name: Unlimited
+  price_usd: 99
+  interval: month
+  credits_per_month: unlimited
+  machines_included: 2
+  swarm_agents_limit: 5
+  schedule_limit: 10
+  api_tier: professional
+- id: enterprise
+  name: Enterprise
+  price_usd: null
+  interval: contact-sales
+  schedule_limit: 50
+  notes: Custom rate limits and custom isolation.
+boost_packages:
+- id: boost-small
+  name: Boost
+  credits: 150
+  price_usd: 19
+  requires_paid_subscription: true
+- id: boost-medium
+  name: Power Boost
+  credits: 500
+  price_usd: 49
+  requires_paid_subscription: true
+- id: boost-large
+  name: Ultra Boost
+  credits: 1200
+  price_usd: 99
+  requires_paid_subscription: true
+metered_rates:
+- endpoint: POST /v1/predict
+  credits_per_call: 5
+  usd: 0.05
+- endpoint: POST /v1/sessions
+  credits_per_call: 10
+  usd: 0.10
+- endpoint: POST /v1/sessions/{id}/predict
+  credits_per_call: 4
+  usd: 0.04
+- endpoint: POST /v1/ground
+  credits_per_call: 3
+  usd: 0.03
+- endpoint: POST /v1/parse
+  credits_per_call: 0
+  usd: 0.0
+machine_runtime_rates:
+- state: linux-running
+  usd_per_hour: 0.05
+- state: windows-running
+  usd_per_hour: 0.09
+- state: stopped
+  usd_per_hour: 0.01
+- state: snapshot
+  usd: 0.01
+agent_minute_rate:
+  credits_per_minute: 10
+  min_credits_to_start: 20
+  max_session_hours: 6

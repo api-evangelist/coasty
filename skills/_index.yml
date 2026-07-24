@@ -1,0 +1,17 @@
+generated: '2026-07-18'
+method: generated
+source: openapi/coasty-openapi-original.json
+api: openapi/coasty-openapi-original.json
+skills:
+- file: coasty-run-autonomous-task.md
+  name: Run an autonomous computer-use task
+  operations: [createRun, getRun, streamRunEvents, resumeRun, cancelRun]
+- file: coasty-provision-and-control-machine.md
+  name: Provision and control a machine
+  operations: [provisionMachine, getMachine, executeAction, executeBatch, getScreenshot, terminalExec, terminateMachine]
+- file: coasty-predict-ui-actions.md
+  name: Predict UI actions from a screenshot
+  operations: [predict, createSession, sessionPredict, ground, parse, deleteSession]
+- file: coasty-schedule-automation.md
+  name: Schedule recurring automation
+  operations: [createSchedule, addTrigger, runScheduleNow, listScheduleRuns]
