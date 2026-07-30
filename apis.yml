@@ -177,6 +177,8 @@ apis:
   - type: GettingStarted
     url: https://coasty.ai/guide?tab=api
 common:
+- type: PostmanWorkspace
+  url: https://www.postman.com/kinlaneapi/coasty/overview
 - type: VulnerabilityDisclosure
   url: security/coasty-vulnerability-disclosure.yml
 - type: Security
