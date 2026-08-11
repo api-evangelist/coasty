@@ -216,7 +216,7 @@ common:
 - type: StatusPage
   url: https://status.coasty.ai
 - type: OpenAPI
-  url: openapi/coasty-openapi-original.json
+  url: openapi/_original/coasty-openapi-original.json
 - type: Overlay
   url: overlays/coasty-openapi-overlay.yaml
 - type: LLMsTxt
