@@ -1,0 +1,4608 @@
+{
+  "item": [
+    {
+      "id": "a168d0b2-64c7-45cc-a060-a36d187668e0",
+      "name": "triggers",
+      "description": {
+        "content": "Webhook and chain triggers for schedules.",
+        "type": "text/plain"
+      },
+      "item": [
+        {
+          "id": "1ce1710c-ba8a-49c6-b354-a6691c7e8b65",
+          "name": "List triggers attached to a schedule",
+          "request": {
+            "name": "List triggers attached to a schedule",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "schedules",
+                ":schedule_id",
+                "triggers"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "schedule_id",
+                  "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "X-API-Key"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "67eb90bd-c4d5-46aa-9306-66147b3b0b21",
+              "name": "Triggers.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Whether the authenticated key is live or test.",
+                  "key": "X-Coasty-Key-Kind",
+                  "value": "live"
+                },
+                {
+                  "disabled": false,
+                  "description": "true when the request executed against the sandbox namespace.",
+                  "key": "X-Coasty-Test-Mode",
+                  "value": "false"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"data\": [\n    {\n      \"id\": \"string\",\n      \"schedule_id\": \"string\",\n      \"kind\": \"string\",\n      \"enabled\": true,\n      \"created_at\": \"1985-06-12T23:20:18.819Z\",\n      \"webhook_url\": \"string\",\n      \"email_address\": \"string\",\n      \"source_schedule_id\": \"string\",\n      \"event\": \"string\"\n    },\n    {\n      \"id\": \"string\",\n      \"schedule_id\": \"string\",\n      \"kind\": \"string\",\n      \"enabled\": true,\n      \"created_at\": \"1957-07-25T00:26:38.603Z\",\n      \"webhook_url\": \"string\",\n      \"email_address\": \"string\",\n      \"source_schedule_id\": \"string\",\n      \"event\": \"string\"\n    }\n  ],\n  \"request_id\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "adacec6d-77c1-4caa-b864-5abb7aa88ba2",
+              "name": "Invalid request body or parameters.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "d7b2e911-f09a-4a02-832c-4ded6d0fe93e",
+              "name": "Missing, invalid, or revoked API key. Pass `X-API-Key: sk-coasty-live-...` (or test).",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"INVALID_API_KEY\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "7a142513-95ac-44be-9e28-053a11ca1b2b",
+              "name": "API key lacks the required scope or tier-feature is unavailable on the caller's plan.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"INSUFFICIENT_SCOPE\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "b0303deb-639d-4adf-81b6-d9379b6fb0a7",
+              "name": "Resource not found in this key's namespace.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"NOT_FOUND\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "b1ed0305-d4bb-4e9c-9b3c-185c17547083",
+              "name": "The resource state conflicts with this operation.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Conflict",
+              "code": 409,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"CONFLICT\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "2a24ade0-d850-4a8b-8125-7f91294922d9",
+              "name": "The request body exceeds the endpoint limit.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Request Entity Too Large",
+              "code": 413,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"PAYLOAD_TOO_LARGE\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "b8c9dccb-e243-4507-80c2-ebd84579ae5b",
+              "name": "The JSON shape is valid but one or more values violate the endpoint contract.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "5eacfa65-1dfb-49d7-9cd6-71fbb8b25604",
+              "name": "Rate or concurrency limit exceeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Too Many Requests",
+              "code": 429,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"RATE_LIMIT_EXCEEDED\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "324e69bd-bd70-4298-8c50-3bc2f1f180e6",
+              "name": "Unexpected server error. Retry with exponential backoff.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Internal Server Error",
+              "code": 500,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"INTERNAL_ERROR\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "639a3571-66df-4516-8afb-9be57912727b",
+              "name": "An upstream dependency returned an invalid response.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Bad Gateway",
+              "code": 502,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"UPSTREAM_ERROR\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "46988b87-9181-4dab-b320-aa6581c765ea",
+              "name": "A required service is temporarily unavailable.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"SERVICE_UNAVAILABLE\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "c719f874-6075-4595-ae22-d260477f0317",
+              "name": "An upstream dependency timed out.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"UPSTREAM_TIMEOUT\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "daa4752d-d98d-4186-9823-877a49c4b400",
+          "name": "Add a trigger (webhook | chain)",
+          "request": {
+            "name": "Add a trigger (webhook | chain)",
+            "description": {
+              "content": "For `webhook`, the response includes a one-time HMAC `webhook_secret` — store it now or rotate the trigger. Chain triggers support a max depth of 5.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "schedules",
+                ":schedule_id",
+                "triggers"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "schedule_id",
+                  "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                }
+              ]
+            },
+            "header": [
+              {
+                "disabled": false,
+                "description": "Optional client-supplied key (≤128 chars, [A-Za-z0-9_-:]) for safe retries. 'Same request' = a SHA-256 of the canonical (sorted-key) JSON body (session_id is folded in for /sessions/{id}/predict). Replays the original response for 24 h when the body hash matches (X-Coasty-Idempotent-Replay: true and X-Credits-Charged: 0). Inference replays also set body usage.credits_charged=0 and usage.billed=false; machine-snapshot bodies retain the original gross charge for auditability. A retry while the original is still running waits up to ~25 s then returns the result, otherwise 409 IDEMPOTENCY_IN_FLIGHT (retry with the SAME key). Returns 422 IDEMPOTENCY_KEY_REUSED if the body differs. Collect a lost result via GET /v1/idempotency/{key}.",
+                "key": "Idempotency-Key",
+                "value": "<string>"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "X-API-Key"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"kind\": \"<string>\",\n  \"source_schedule_id\": \"<string,null>\",\n  \"event\": \"on_complete\",\n  \"pass_output\": true,\n  \"rate_limit_per_minute\": 60,\n  \"enabled\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "c2d336b8-ecc0-4a29-9c6f-5200238fb6d4",
+              "name": "Trigger created.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Optional client-supplied key (≤128 chars, [A-Za-z0-9_-:]) for safe retries. 'Same request' = a SHA-256 of the canonical (sorted-key) JSON body (session_id is folded in for /sessions/{id}/predict). Replays the original response for 24 h when the body hash matches (X-Coasty-Idempotent-Replay: true and X-Credits-Charged: 0). Inference replays also set body usage.credits_charged=0 and usage.billed=false; machine-snapshot bodies retain the original gross charge for auditability. A retry while the original is still running waits up to ~25 s then returns the result, otherwise 409 IDEMPOTENCY_IN_FLIGHT (retry with the SAME key). Returns 422 IDEMPOTENCY_KEY_REUSED if the body differs. Collect a lost result via GET /v1/idempotency/{key}.",
+                    "key": "Idempotency-Key",
+                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"kind\": \"<string>\",\n  \"source_schedule_id\": \"<string,null>\",\n  \"event\": \"on_complete\",\n  \"pass_output\": true,\n  \"rate_limit_per_minute\": 60,\n  \"enabled\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Whether the authenticated key is live or test.",
+                  "key": "X-Coasty-Key-Kind",
+                  "value": "live"
+                },
+                {
+                  "disabled": false,
+                  "description": "true when the request executed against the sandbox namespace.",
+                  "key": "X-Coasty-Test-Mode",
+                  "value": "false"
+                },
+                {
+                  "disabled": false,
+                  "description": "true when this is a stored response replay rather than a new execution.",
+                  "key": "X-Coasty-Idempotent-Replay",
+                  "value": "true"
+                },
+                {
+                  "disabled": false,
+                  "description": "Lifecycle status of the canonical idempotent attempt when applicable.",
+                  "key": "Idempotency-Status",
+                  "value": "completed"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"id\": \"string\",\n  \"schedule_id\": \"string\",\n  \"kind\": \"string\",\n  \"enabled\": true,\n  \"created_at\": \"1967-09-21T06:25:04.061Z\",\n  \"webhook_url\": \"string\",\n  \"webhook_secret\": \"string\",\n  \"email_address\": \"string\",\n  \"source_schedule_id\": \"string\",\n  \"event\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "af7ca89e-2752-48d4-98b7-c8ae0a765e68",
+              "name": "Invalid request body or parameters.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Optional client-supplied key (≤128 chars, [A-Za-z0-9_-:]) for safe retries. 'Same request' = a SHA-256 of the canonical (sorted-key) JSON body (session_id is folded in for /sessions/{id}/predict). Replays the original response for 24 h when the body hash matches (X-Coasty-Idempotent-Replay: true and X-Credits-Charged: 0). Inference replays also set body usage.credits_charged=0 and usage.billed=false; machine-snapshot bodies retain the original gross charge for auditability. A retry while the original is still running waits up to ~25 s then returns the result, otherwise 409 IDEMPOTENCY_IN_FLIGHT (retry with the SAME key). Returns 422 IDEMPOTENCY_KEY_REUSED if the body differs. Collect a lost result via GET /v1/idempotency/{key}.",
+                    "key": "Idempotency-Key",
+                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"kind\": \"<string>\",\n  \"source_schedule_id\": \"<string,null>\",\n  \"event\": \"on_complete\",\n  \"pass_output\": true,\n  \"rate_limit_per_minute\": 60,\n  \"enabled\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "3f21c1ed-c4ac-4c54-8e75-28d5ba840b61",
+              "name": "Missing, invalid, or revoked API key. Pass `X-API-Key: sk-coasty-live-...` (or test).",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Optional client-supplied key (≤128 chars, [A-Za-z0-9_-:]) for safe retries. 'Same request' = a SHA-256 of the canonical (sorted-key) JSON body (session_id is folded in for /sessions/{id}/predict). Replays the original response for 24 h when the body hash matches (X-Coasty-Idempotent-Replay: true and X-Credits-Charged: 0). Inference replays also set body usage.credits_charged=0 and usage.billed=false; machine-snapshot bodies retain the original gross charge for auditability. A retry while the original is still running waits up to ~25 s then returns the result, otherwise 409 IDEMPOTENCY_IN_FLIGHT (retry with the SAME key). Returns 422 IDEMPOTENCY_KEY_REUSED if the body differs. Collect a lost result via GET /v1/idempotency/{key}.",
+                    "key": "Idempotency-Key",
+                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"kind\": \"<string>\",\n  \"source_schedule_id\": \"<string,null>\",\n  \"event\": \"on_complete\",\n  \"pass_output\": true,\n  \"rate_limit_per_minute\": 60,\n  \"enabled\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"INVALID_API_KEY\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "2e6fb455-c05f-4644-a735-e6ba6520eea7",
+              "name": "API key lacks the required scope or tier-feature is unavailable on the caller's plan.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Optional client-supplied key (≤128 chars, [A-Za-z0-9_-:]) for safe retries. 'Same request' = a SHA-256 of the canonical (sorted-key) JSON body (session_id is folded in for /sessions/{id}/predict). Replays the original response for 24 h when the body hash matches (X-Coasty-Idempotent-Replay: true and X-Credits-Charged: 0). Inference replays also set body usage.credits_charged=0 and usage.billed=false; machine-snapshot bodies retain the original gross charge for auditability. A retry while the original is still running waits up to ~25 s then returns the result, otherwise 409 IDEMPOTENCY_IN_FLIGHT (retry with the SAME key). Returns 422 IDEMPOTENCY_KEY_REUSED if the body differs. Collect a lost result via GET /v1/idempotency/{key}.",
+                    "key": "Idempotency-Key",
+                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"kind\": \"<string>\",\n  \"source_schedule_id\": \"<string,null>\",\n  \"event\": \"on_complete\",\n  \"pass_output\": true,\n  \"rate_limit_per_minute\": 60,\n  \"enabled\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"INSUFFICIENT_SCOPE\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "a260622f-6bbc-4ce4-8968-337340c82001",
+              "name": "Resource not found in this key's namespace.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Optional client-supplied key (≤128 chars, [A-Za-z0-9_-:]) for safe retries. 'Same request' = a SHA-256 of the canonical (sorted-key) JSON body (session_id is folded in for /sessions/{id}/predict). Replays the original response for 24 h when the body hash matches (X-Coasty-Idempotent-Replay: true and X-Credits-Charged: 0). Inference replays also set body usage.credits_charged=0 and usage.billed=false; machine-snapshot bodies retain the original gross charge for auditability. A retry while the original is still running waits up to ~25 s then returns the result, otherwise 409 IDEMPOTENCY_IN_FLIGHT (retry with the SAME key). Returns 422 IDEMPOTENCY_KEY_REUSED if the body differs. Collect a lost result via GET /v1/idempotency/{key}.",
+                    "key": "Idempotency-Key",
+                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"kind\": \"<string>\",\n  \"source_schedule_id\": \"<string,null>\",\n  \"event\": \"on_complete\",\n  \"pass_output\": true,\n  \"rate_limit_per_minute\": 60,\n  \"enabled\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"NOT_FOUND\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "c2f31090-4485-464a-af78-8c85e622ed36",
+              "name": "The resource state conflicts with this operation.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Optional client-supplied key (≤128 chars, [A-Za-z0-9_-:]) for safe retries. 'Same request' = a SHA-256 of the canonical (sorted-key) JSON body (session_id is folded in for /sessions/{id}/predict). Replays the original response for 24 h when the body hash matches (X-Coasty-Idempotent-Replay: true and X-Credits-Charged: 0). Inference replays also set body usage.credits_charged=0 and usage.billed=false; machine-snapshot bodies retain the original gross charge for auditability. A retry while the original is still running waits up to ~25 s then returns the result, otherwise 409 IDEMPOTENCY_IN_FLIGHT (retry with the SAME key). Returns 422 IDEMPOTENCY_KEY_REUSED if the body differs. Collect a lost result via GET /v1/idempotency/{key}.",
+                    "key": "Idempotency-Key",
+                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"kind\": \"<string>\",\n  \"source_schedule_id\": \"<string,null>\",\n  \"event\": \"on_complete\",\n  \"pass_output\": true,\n  \"rate_limit_per_minute\": 60,\n  \"enabled\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Conflict",
+              "code": 409,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"CONFLICT\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "23a4755d-1ea0-43c3-8029-196ad11452b7",
+              "name": "The request body exceeds the endpoint limit.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Optional client-supplied key (≤128 chars, [A-Za-z0-9_-:]) for safe retries. 'Same request' = a SHA-256 of the canonical (sorted-key) JSON body (session_id is folded in for /sessions/{id}/predict). Replays the original response for 24 h when the body hash matches (X-Coasty-Idempotent-Replay: true and X-Credits-Charged: 0). Inference replays also set body usage.credits_charged=0 and usage.billed=false; machine-snapshot bodies retain the original gross charge for auditability. A retry while the original is still running waits up to ~25 s then returns the result, otherwise 409 IDEMPOTENCY_IN_FLIGHT (retry with the SAME key). Returns 422 IDEMPOTENCY_KEY_REUSED if the body differs. Collect a lost result via GET /v1/idempotency/{key}.",
+                    "key": "Idempotency-Key",
+                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"kind\": \"<string>\",\n  \"source_schedule_id\": \"<string,null>\",\n  \"event\": \"on_complete\",\n  \"pass_output\": true,\n  \"rate_limit_per_minute\": 60,\n  \"enabled\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Request Entity Too Large",
+              "code": 413,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"PAYLOAD_TOO_LARGE\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "300697b5-366c-416f-a7f3-32d02260ebc4",
+              "name": "The JSON shape is valid but one or more values violate the endpoint contract.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Optional client-supplied key (≤128 chars, [A-Za-z0-9_-:]) for safe retries. 'Same request' = a SHA-256 of the canonical (sorted-key) JSON body (session_id is folded in for /sessions/{id}/predict). Replays the original response for 24 h when the body hash matches (X-Coasty-Idempotent-Replay: true and X-Credits-Charged: 0). Inference replays also set body usage.credits_charged=0 and usage.billed=false; machine-snapshot bodies retain the original gross charge for auditability. A retry while the original is still running waits up to ~25 s then returns the result, otherwise 409 IDEMPOTENCY_IN_FLIGHT (retry with the SAME key). Returns 422 IDEMPOTENCY_KEY_REUSED if the body differs. Collect a lost result via GET /v1/idempotency/{key}.",
+                    "key": "Idempotency-Key",
+                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"kind\": \"<string>\",\n  \"source_schedule_id\": \"<string,null>\",\n  \"event\": \"on_complete\",\n  \"pass_output\": true,\n  \"rate_limit_per_minute\": 60,\n  \"enabled\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "7b8112c4-2180-4726-9912-4f0764230448",
+              "name": "Rate or concurrency limit exceeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Optional client-supplied key (≤128 chars, [A-Za-z0-9_-:]) for safe retries. 'Same request' = a SHA-256 of the canonical (sorted-key) JSON body (session_id is folded in for /sessions/{id}/predict). Replays the original response for 24 h when the body hash matches (X-Coasty-Idempotent-Replay: true and X-Credits-Charged: 0). Inference replays also set body usage.credits_charged=0 and usage.billed=false; machine-snapshot bodies retain the original gross charge for auditability. A retry while the original is still running waits up to ~25 s then returns the result, otherwise 409 IDEMPOTENCY_IN_FLIGHT (retry with the SAME key). Returns 422 IDEMPOTENCY_KEY_REUSED if the body differs. Collect a lost result via GET /v1/idempotency/{key}.",
+                    "key": "Idempotency-Key",
+                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"kind\": \"<string>\",\n  \"source_schedule_id\": \"<string,null>\",\n  \"event\": \"on_complete\",\n  \"pass_output\": true,\n  \"rate_limit_per_minute\": 60,\n  \"enabled\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Too Many Requests",
+              "code": 429,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"RATE_LIMIT_EXCEEDED\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "4b1e8608-dddf-4ac7-8612-fcb728c51dad",
+              "name": "Unexpected server error. Retry with exponential backoff.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Optional client-supplied key (≤128 chars, [A-Za-z0-9_-:]) for safe retries. 'Same request' = a SHA-256 of the canonical (sorted-key) JSON body (session_id is folded in for /sessions/{id}/predict). Replays the original response for 24 h when the body hash matches (X-Coasty-Idempotent-Replay: true and X-Credits-Charged: 0). Inference replays also set body usage.credits_charged=0 and usage.billed=false; machine-snapshot bodies retain the original gross charge for auditability. A retry while the original is still running waits up to ~25 s then returns the result, otherwise 409 IDEMPOTENCY_IN_FLIGHT (retry with the SAME key). Returns 422 IDEMPOTENCY_KEY_REUSED if the body differs. Collect a lost result via GET /v1/idempotency/{key}.",
+                    "key": "Idempotency-Key",
+                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"kind\": \"<string>\",\n  \"source_schedule_id\": \"<string,null>\",\n  \"event\": \"on_complete\",\n  \"pass_output\": true,\n  \"rate_limit_per_minute\": 60,\n  \"enabled\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Internal Server Error",
+              "code": 500,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"INTERNAL_ERROR\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "373aee23-c51f-4bad-b022-8ccedb1821b8",
+              "name": "An upstream dependency returned an invalid response.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Optional client-supplied key (≤128 chars, [A-Za-z0-9_-:]) for safe retries. 'Same request' = a SHA-256 of the canonical (sorted-key) JSON body (session_id is folded in for /sessions/{id}/predict). Replays the original response for 24 h when the body hash matches (X-Coasty-Idempotent-Replay: true and X-Credits-Charged: 0). Inference replays also set body usage.credits_charged=0 and usage.billed=false; machine-snapshot bodies retain the original gross charge for auditability. A retry while the original is still running waits up to ~25 s then returns the result, otherwise 409 IDEMPOTENCY_IN_FLIGHT (retry with the SAME key). Returns 422 IDEMPOTENCY_KEY_REUSED if the body differs. Collect a lost result via GET /v1/idempotency/{key}.",
+                    "key": "Idempotency-Key",
+                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"kind\": \"<string>\",\n  \"source_schedule_id\": \"<string,null>\",\n  \"event\": \"on_complete\",\n  \"pass_output\": true,\n  \"rate_limit_per_minute\": 60,\n  \"enabled\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Gateway",
+              "code": 502,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"UPSTREAM_ERROR\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "48d03f5a-3c1e-448f-9449-1b977d34cfbc",
+              "name": "A required service is temporarily unavailable.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Optional client-supplied key (≤128 chars, [A-Za-z0-9_-:]) for safe retries. 'Same request' = a SHA-256 of the canonical (sorted-key) JSON body (session_id is folded in for /sessions/{id}/predict). Replays the original response for 24 h when the body hash matches (X-Coasty-Idempotent-Replay: true and X-Credits-Charged: 0). Inference replays also set body usage.credits_charged=0 and usage.billed=false; machine-snapshot bodies retain the original gross charge for auditability. A retry while the original is still running waits up to ~25 s then returns the result, otherwise 409 IDEMPOTENCY_IN_FLIGHT (retry with the SAME key). Returns 422 IDEMPOTENCY_KEY_REUSED if the body differs. Collect a lost result via GET /v1/idempotency/{key}.",
+                    "key": "Idempotency-Key",
+                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"kind\": \"<string>\",\n  \"source_schedule_id\": \"<string,null>\",\n  \"event\": \"on_complete\",\n  \"pass_output\": true,\n  \"rate_limit_per_minute\": 60,\n  \"enabled\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"SERVICE_UNAVAILABLE\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "17eaf4e0-0c27-462f-b17e-9bd53bbb5c52",
+              "name": "An upstream dependency timed out.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Optional client-supplied key (≤128 chars, [A-Za-z0-9_-:]) for safe retries. 'Same request' = a SHA-256 of the canonical (sorted-key) JSON body (session_id is folded in for /sessions/{id}/predict). Replays the original response for 24 h when the body hash matches (X-Coasty-Idempotent-Replay: true and X-Credits-Charged: 0). Inference replays also set body usage.credits_charged=0 and usage.billed=false; machine-snapshot bodies retain the original gross charge for auditability. A retry while the original is still running waits up to ~25 s then returns the result, otherwise 409 IDEMPOTENCY_IN_FLIGHT (retry with the SAME key). Returns 422 IDEMPOTENCY_KEY_REUSED if the body differs. Collect a lost result via GET /v1/idempotency/{key}.",
+                    "key": "Idempotency-Key",
+                    "value": "550e8400-e29b-41d4-a716-446655440000"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"kind\": \"<string>\",\n  \"source_schedule_id\": \"<string,null>\",\n  \"event\": \"on_complete\",\n  \"pass_output\": true,\n  \"rate_limit_per_minute\": 60,\n  \"enabled\": true\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"UPSTREAM_TIMEOUT\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "6ca5db1e-ac13-4b2f-b8fa-5a42aa9d3820",
+          "name": "Remove a trigger",
+          "request": {
+            "name": "Remove a trigger",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "schedules",
+                ":schedule_id",
+                "triggers",
+                ":trigger_id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "schedule_id",
+                  "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                },
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "trigger_id",
+                  "description": "(Required) "
+                }
+              ]
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "DELETE",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "X-API-Key"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            }
+          },
+          "response": [
+            {
+              "id": "0978f951-689f-48db-b84f-34a4ce29a085",
+              "name": "Removed.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers",
+                    ":trigger_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    },
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "trigger_id",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Whether the authenticated key is live or test.",
+                  "key": "X-Coasty-Key-Kind",
+                  "value": "live"
+                },
+                {
+                  "disabled": false,
+                  "description": "true when the request executed against the sandbox namespace.",
+                  "key": "X-Coasty-Test-Mode",
+                  "value": "true"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"deleted\": false,\n  \"trigger_id\": \"string\",\n  \"request_id\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "8b62e636-3396-4114-ba3a-ca90b6803df0",
+              "name": "Invalid request body or parameters.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers",
+                    ":trigger_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    },
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "trigger_id",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "191e3f7a-fb4d-4e30-ad22-d2dc335a469c",
+              "name": "Missing, invalid, or revoked API key. Pass `X-API-Key: sk-coasty-live-...` (or test).",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers",
+                    ":trigger_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    },
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "trigger_id",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"INVALID_API_KEY\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "858458d3-0334-4657-a34a-784caa4f6147",
+              "name": "API key lacks the required scope or tier-feature is unavailable on the caller's plan.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers",
+                    ":trigger_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    },
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "trigger_id",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"INSUFFICIENT_SCOPE\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "5059141b-bbe9-4a50-866f-1a0e853f86db",
+              "name": "Resource not found in this key's namespace.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers",
+                    ":trigger_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    },
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "trigger_id",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"NOT_FOUND\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "69273baf-fe6c-4ebb-a1ab-9cda8903569b",
+              "name": "The resource state conflicts with this operation.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers",
+                    ":trigger_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    },
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "trigger_id",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "Conflict",
+              "code": 409,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"CONFLICT\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "849f0ac7-f0dd-41c8-99a6-fb13cfc79ec4",
+              "name": "The request body exceeds the endpoint limit.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers",
+                    ":trigger_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    },
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "trigger_id",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "Request Entity Too Large",
+              "code": 413,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"PAYLOAD_TOO_LARGE\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "ead4bea4-e863-4e3f-bfb6-e0a5e4d8dab7",
+              "name": "The JSON shape is valid but one or more values violate the endpoint contract.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers",
+                    ":trigger_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    },
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "trigger_id",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "40f8d179-6cd7-4d05-ba26-a5e901f4bc9b",
+              "name": "Rate or concurrency limit exceeded.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers",
+                    ":trigger_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    },
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "trigger_id",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "Too Many Requests",
+              "code": 429,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"RATE_LIMIT_EXCEEDED\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "fe6018a1-6fab-47aa-8c39-9fc84e203d91",
+              "name": "Unexpected server error. Retry with exponential backoff.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers",
+                    ":trigger_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    },
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "trigger_id",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "Internal Server Error",
+              "code": 500,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"INTERNAL_ERROR\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "7e365722-58a5-4de2-b525-fd9534762844",
+              "name": "An upstream dependency returned an invalid response.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers",
+                    ":trigger_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    },
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "trigger_id",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "Bad Gateway",
+              "code": 502,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"UPSTREAM_ERROR\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "f815320b-73c5-4b9b-9002-785eba46230c",
+              "name": "A required service is temporarily unavailable.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers",
+                    ":trigger_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    },
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "trigger_id",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "Service Unavailable",
+              "code": 503,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"SERVICE_UNAVAILABLE\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "f8d86ccf-2f09-47f8-b363-c8b822682ba4",
+              "name": "An upstream dependency timed out.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "schedules",
+                    ":schedule_id",
+                    "triggers",
+                    ":trigger_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "schedule_id",
+                      "description": "(Required) Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+                    },
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "trigger_id",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "DELETE",
+                "body": {}
+              },
+              "status": "Gateway Timeout",
+              "code": 504,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"UPSTREAM_TIMEOUT\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "77df1c50-74d5-4cc1-a943-060ce05f3ba6",
+          "name": "Fire a schedule from an HMAC-authenticated external webhook",
+          "request": {
+            "name": "Fire a schedule from an HMAC-authenticated external webhook",
+            "description": {
+              "content": "No Coasty API key is used. The request is authenticated with HMAC-SHA256 over `<unix_ts>.<body>` using the secret from trigger creation. Send either `Coasty-Signature: t=<ts>,v1=<sig>` or its `X-Coasty-Signature` compatibility alias. Replay window 5 minutes. Body capped at 1 MB. Repeated identical (webhook_id, body) within 60s are deduped.",
+              "type": "text/plain"
+            },
+            "url": {
+              "path": [
+                "v1",
+                "triggers",
+                "webhook",
+                ":webhook_id"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": [
+                {
+                  "disabled": false,
+                  "type": "any",
+                  "value": "<string>",
+                  "key": "webhook_id",
+                  "description": "(Required) "
+                }
+              ]
+            },
+            "header": [
+              {
+                "disabled": false,
+                "description": "Primary HMAC credential. Exactly one supported signature header is required.",
+                "key": "Coasty-Signature",
+                "value": "<string>"
+              },
+              {
+                "disabled": false,
+                "description": "Compatibility alias for Coasty-Signature. Send one signature header, not both.",
+                "key": "X-Coasty-Signature",
+                "value": "<string>"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "POST",
+            "auth": {
+              "type": "apikey",
+              "apikey": [
+                {
+                  "key": "key",
+                  "value": "Coasty-Signature"
+                },
+                {
+                  "key": "value",
+                  "value": "{{apiKey}}"
+                },
+                {
+                  "key": "in",
+                  "value": "header"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": 3658.1248654525534\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [
+            {
+              "id": "0de55cf2-d417-4498-b528-ac1235e1c29b",
+              "name": "Webhook accepted.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "triggers",
+                    "webhook",
+                    ":webhook_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "webhook_id",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Coasty-Signature",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Primary HMAC credential. Exactly one supported signature header is required.",
+                    "key": "Coasty-Signature",
+                    "value": "t=1714900000,v1=4d2f...e7"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Compatibility alias for Coasty-Signature. Send one signature header, not both.",
+                    "key": "X-Coasty-Signature",
+                    "value": "t=1714900000,v1=4d2f...e7"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": \"string\",\n  \"key_2\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"received\": false,\n  \"schedule_id\": \"string\",\n  \"message\": \"string\",\n  \"request_id\": \"string\",\n  \"run_id\": \"string\",\n  \"deduplicated\": false\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "88f01456-4a66-4767-b2d8-8be3991bcbb8",
+              "name": "Invalid request body or parameters.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "triggers",
+                    "webhook",
+                    ":webhook_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "webhook_id",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Coasty-Signature",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Primary HMAC credential. Exactly one supported signature header is required.",
+                    "key": "Coasty-Signature",
+                    "value": "t=1714900000,v1=4d2f...e7"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Compatibility alias for Coasty-Signature. Send one signature header, not both.",
+                    "key": "X-Coasty-Signature",
+                    "value": "t=1714900000,v1=4d2f...e7"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": \"string\",\n  \"key_2\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"VALIDATION_ERROR\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "252c84d8-2ad2-4019-94c3-fcfa93073fed",
+              "name": "Missing, invalid, or revoked API key. Pass `X-API-Key: sk-coasty-live-...` (or test).",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "triggers",
+                    "webhook",
+                    ":webhook_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "webhook_id",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Coasty-Signature",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Primary HMAC credential. Exactly one supported signature header is required.",
+                    "key": "Coasty-Signature",
+                    "value": "t=1714900000,v1=4d2f...e7"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Compatibility alias for Coasty-Signature. Send one signature header, not both.",
+                    "key": "X-Coasty-Signature",
+                    "value": "t=1714900000,v1=4d2f...e7"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": \"string\",\n  \"key_2\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"INVALID_API_KEY\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "e7365ab3-14c3-491e-a662-c6f242c33de1",
+              "name": "Insufficient credits to perform the operation. Top up via /credits or upgrade subscription.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "triggers",
+                    "webhook",
+                    ":webhook_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "webhook_id",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Coasty-Signature",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Primary HMAC credential. Exactly one supported signature header is required.",
+                    "key": "Coasty-Signature",
+                    "value": "t=1714900000,v1=4d2f...e7"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Compatibility alias for Coasty-Signature. Send one signature header, not both.",
+                    "key": "X-Coasty-Signature",
+                    "value": "t=1714900000,v1=4d2f...e7"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": \"string\",\n  \"key_2\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Payment Required",
+              "code": 402,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"INSUFFICIENT_CREDITS\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "108f3b8b-0dcc-4176-9375-7498957abe6f",
+              "name": "Resource not found in this key's namespace.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "triggers",
+                    "webhook",
+                    ":webhook_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "webhook_id",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Coasty-Signature",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Primary HMAC credential. Exactly one supported signature header is required.",
+                    "key": "Coasty-Signature",
+                    "value": "t=1714900000,v1=4d2f...e7"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Compatibility alias for Coasty-Signature. Send one signature header, not both.",
+                    "key": "X-Coasty-Signature",
+                    "value": "t=1714900000,v1=4d2f...e7"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": \"string\",\n  \"key_2\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Not Found",
+              "code": 404,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"NOT_FOUND\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "06ab751f-d3f8-4ce7-9db6-dd67a54c353b",
+              "name": "The resource state conflicts with this operation.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "triggers",
+                    "webhook",
+                    ":webhook_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "webhook_id",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Coasty-Signature",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Primary HMAC credential. Exactly one supported signature header is required.",
+                    "key": "Coasty-Signature",
+                    "value": "t=1714900000,v1=4d2f...e7"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Compatibility alias for Coasty-Signature. Send one signature header, not both.",
+                    "key": "X-Coasty-Signature",
+                    "value": "t=1714900000,v1=4d2f...e7"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": \"string\",\n  \"key_2\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Conflict",
+              "code": 409,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"CONFLICT\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "6ec6bf57-5b2c-4fc4-a3b7-2a335a116935",
+              "name": "Body exceeds 1 MB.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "triggers",
+                    "webhook",
+                    ":webhook_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "webhook_id",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Coasty-Signature",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Primary HMAC credential. Exactly one supported signature header is required.",
+                    "key": "Coasty-Signature",
+                    "value": "t=1714900000,v1=4d2f...e7"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Compatibility alias for Coasty-Signature. Send one signature header, not both.",
+                    "key": "X-Coasty-Signature",
+                    "value": "t=1714900000,v1=4d2f...e7"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": \"string\",\n  \"key_2\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Request Entity Too Large",
+              "code": 413,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"PAYLOAD_TOO_LARGE\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "5170fd01-b96d-4d8c-9f09-5ac2024e9329",
+              "name": "Webhook per-minute rate limit exceeded. Honor Retry-After.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "triggers",
+                    "webhook",
+                    ":webhook_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "webhook_id",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Coasty-Signature",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Primary HMAC credential. Exactly one supported signature header is required.",
+                    "key": "Coasty-Signature",
+                    "value": "t=1714900000,v1=4d2f...e7"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Compatibility alias for Coasty-Signature. Send one signature header, not both.",
+                    "key": "X-Coasty-Signature",
+                    "value": "t=1714900000,v1=4d2f...e7"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": \"string\",\n  \"key_2\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Too Many Requests",
+              "code": 429,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"RATE_LIMITED\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            },
+            {
+              "id": "b801d9c7-3174-4402-a6bb-07eec25b3ac1",
+              "name": "Unexpected server error. Retry with exponential backoff.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "triggers",
+                    "webhook",
+                    ":webhook_id"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": [
+                    {
+                      "disabled": false,
+                      "type": "any",
+                      "value": "<string>",
+                      "key": "webhook_id",
+                      "description": "(Required) "
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "Coasty-Signature",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Primary HMAC credential. Exactly one supported signature header is required.",
+                    "key": "Coasty-Signature",
+                    "value": "t=1714900000,v1=4d2f...e7"
+                  },
+                  {
+                    "disabled": false,
+                    "description": "Compatibility alias for Coasty-Signature. Send one signature header, not both.",
+                    "key": "X-Coasty-Signature",
+                    "value": "t=1714900000,v1=4d2f...e7"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "POST",
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"key_0\": \"string\",\n  \"key_1\": \"string\",\n  \"key_2\": false\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                }
+              },
+              "status": "Internal Server Error",
+              "code": 500,
+              "header": [
+                {
+                  "disabled": false,
+                  "description": "Coasty correlation identifier for this request.",
+                  "key": "X-Coasty-Request-Id",
+                  "value": "string"
+                },
+                {
+                  "disabled": false,
+                  "description": "Seconds to wait before retrying. Present on retryable back-pressure and transient failures.",
+                  "key": "Retry-After",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits charged by this response (zero for sandbox keys and stored replays).",
+                  "key": "X-Credits-Charged",
+                  "value": "6125"
+                },
+                {
+                  "disabled": false,
+                  "description": "Credits durably returned to the wallet after a failed billed operation.",
+                  "key": "X-Credits-Refunded",
+                  "value": "3312"
+                },
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"error\": {\n    \"code\": \"INTERNAL_ERROR\",\n    \"message\": \"An error occurred. See `code` for details.\",\n    \"type\": \"validation_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        },
+        {
+          "id": "543a4b69-8490-4fe9-bf58-8faf53b54b2d",
+          "name": "Triggers API health check",
+          "request": {
+            "name": "Triggers API health check",
+            "description": {},
+            "url": {
+              "path": [
+                "v1",
+                "triggers",
+                "health"
+              ],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "query": [],
+              "variable": []
+            },
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "method": "GET",
+            "auth": null
+          },
+          "response": [
+            {
+              "id": "0a3e9ca1-9eb5-4e9e-81a0-f84b0582c06f",
+              "name": "OK.",
+              "originalRequest": {
+                "url": {
+                  "path": [
+                    "v1",
+                    "triggers",
+                    "health"
+                  ],
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "query": [],
+                  "variable": []
+                },
+                "header": [
+                  {
+                    "description": {
+                      "content": "Added as a part of security scheme: apikey",
+                      "type": "text/plain"
+                    },
+                    "key": "X-API-Key",
+                    "value": "<API Key>"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "method": "GET",
+                "body": {}
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"status\": \"ok\",\n  \"api_version\": \"string\",\n  \"service\": \"string\"\n}",
+              "cookie": [],
+              "_postman_previewlanguage": "json"
+            }
+          ],
+          "event": [],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          }
+        }
+      ],
+      "event": []
+    }
+  ],
+  "event": [],
+  "variable": [
+    {
+      "type": "string",
+      "value": "https://coasty.ai",
+      "key": "baseUrl"
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "key",
+        "value": "X-API-Key"
+      },
+      {
+        "key": "value",
+        "value": "{{apiKey}}"
+      },
+      {
+        "key": "in",
+        "value": "header"
+      }
+    ]
+  },
+  "info": {
+    "_postman_id": "c36cf59f-1bc5-4eb2-b7c5-91d0d023352b",
+    "name": "Coasty Public keys triggers API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": {
+      "content": "# Coasty Public API\n\nCoasty is a Computer Use Agent (CUA) platform: predict actions from screenshots,\nprovision managed VMs, and run scheduled automation against them.\n\n## Authentication\n\nAll endpoints (except `/v1/triggers/webhook/{webhook_id}` and health checks) require an API key.\nPass it as either:\n\n- `X-API-Key: sk-coasty-live-...` (or `sk-coasty-test-...` for sandbox)\n- `Authorization: Bearer sk-coasty-live-...`\n\nThe external webhook endpoint does not use an API key, but it is authenticated:\nsend the HMAC-SHA256 `Coasty-Signature` credential documented on that operation.\n\nTest-mode keys (`sk-coasty-test-*`) hit the same validation paths as live keys but\nreturn mock VMs / mock action results and never bill credits — ideal for CI.\n\n## Pricing & budgeting\n\nPer-call rates (subject to change — see `lib/pricing/tiers.ts METERED_RATES`):\n\n| Endpoint | Credits |\n|---|---|\n| `POST /v1/predict` | ~5 |\n| `POST /v1/sessions` | 10 |\n| `POST /v1/sessions/{id}/predict` | ~4 |\n| `POST /v1/ground` | ~3 |\n| `POST /v1/parse` | 0 (free) |\n\nLong-running CUA jobs orchestrated through the dashboard (not this API) bill at\n10 credits/minute with a 20-credit minimum. Subscription tiers (`free | starter |\nprofessional | enterprise`) gate feature availability (e.g. custom system prompts),\nschedule counts, and the maximum trajectory length.\n\n## Errors\n\nEvery error response uses the same envelope:\n\n```json\n{\n  \"error\": {\n    \"code\": \"INSUFFICIENT_CREDITS\",\n    \"message\": \"Need 5, have 2.\",\n    \"type\": \"billing_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}\n```\n\nInclude the `request_id` in support requests.\n\n## Idempotency\n\nOperations marked `x-idempotency: reserve-and-replay` accept `Idempotency-Key:\n<≤128 chars of [A-Za-z0-9_-:]>`. Replays\nof the same key + identical body return the original response (with\n`X-Coasty-Idempotent-Replay: true`) for 24 h. Reusing the key with a different body\nis a 422 `IDEMPOTENCY_KEY_REUSED`.\nOperations marked `x-idempotency: webhook-payload-dedup` instead deduplicate the\nsame webhook id + identical raw body for 60 seconds; they do not accept an\nIdempotency-Key.\n\n## Clients & MCP\n\nUse the HTTP API directly from any language. Official TypeScript and Python SDKs\nare not currently published; generate a client from this OpenAPI document if needed.\n- MCP server: `npx -y @coasty/mcp` (see `x-mcp-server`)\n\n## Reference\n\nComplete (machine-readable) spec is hosted at `/.well-known/openapi.json` and\n`/openapi.json` (Stripe / Vercel conventions).\n\nContact Support:\n Name: Coasty Developer Support\n Email: founders@coasty.ai",
+      "type": "text/plain"
+    }
+  }
+}

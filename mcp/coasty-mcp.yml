@@ -43,3 +43,12 @@ notes:
 - One-shot agent onboarding via the coasty_get_capabilities tool.
 - Same API key drives REST (/v1/*) and MCP surfaces.
 - Sandbox keys (sk-coasty-test-*) work against the MCP server free of charge.
+deployment:
+  mode: none
+  endpoint: https://api.coasty.ai/mcp
+  verified: probed
+  probe: dead
+  note: the endpoint this manifest claimed did not answer; recorded as none rather than deleted so the
+    claim stays auditable
+  checked: '2026-08-12'
+  source: catalog MCP census

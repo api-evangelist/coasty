@@ -1,0 +1,141 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Coasty Public keys predict API",
+    "version": "1.0.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "X-API-Key",
+      "value": "{{X-API-Key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "predict",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Stateless action prediction",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/predict",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              },
+              {
+                "name": "X-LLM-Provider",
+                "value": ""
+              },
+              {
+                "name": "X-LLM-Api-Key",
+                "value": ""
+              },
+              {
+                "name": "X-LLM-Model",
+                "value": ""
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Send a screenshot + instruction; receive a list of structured actions to execute on the target machine. Costs ~5 credits/call (varies by CUA version, screenshot size, trajectory length). See lib/pricing/tiers.ts METERED_RATES for budgeting."
+        },
+        {
+          "info": {
+            "name": "Coordinate grounding",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/ground",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Find (x, y) for a described UI element. ~3 credits/call."
+        },
+        {
+          "info": {
+            "name": "Parse pyautogui code into structured actions",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/parse",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Free, no LLM call. Returns structured Action objects."
+        },
+        {
+          "info": {
+            "name": "List available models, CUA versions, and action types",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/models",
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "List available models, CUA versions, and action types"
+        },
+        {
+          "info": {
+            "name": "Public CUA API health check",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/health"
+          },
+          "docs": "No authentication required."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

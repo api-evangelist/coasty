@@ -1,0 +1,334 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Coasty Public keys schedules API",
+    "version": "1.0.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "X-API-Key",
+      "value": "{{X-API-Key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "schedules",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List schedules",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/schedules",
+            "params": [
+              {
+                "name": "limit",
+                "value": "",
+                "type": "query"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "List schedules"
+        },
+        {
+          "info": {
+            "name": "Create a schedule",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/schedules",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              },
+              {
+                "name": "X-LLM-Provider",
+                "value": ""
+              },
+              {
+                "name": "X-LLM-Api-Key",
+                "value": ""
+              },
+              {
+                "name": "X-LLM-Model",
+                "value": ""
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Cron-based or one-shot (run_at) scheduled task. Schedule-count limits are tier- and deployment-configured; clients must handle the structured limit response rather than hardcoding plan values. BYOK: schedules store only the non-secret llm preference; at fire time the CURRENT stored key is used — if it was deleted, firings fail loudly with LLM_KEY_NOT_CONFIGURED instead of silently running on platform keys."
+        },
+        {
+          "info": {
+            "name": "Schedules API health check",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/schedules/health"
+          },
+          "docs": "Schedules API health check"
+        },
+        {
+          "info": {
+            "name": "Get schedule details",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/schedules/:schedule_id",
+            "params": [
+              {
+                "name": "schedule_id",
+                "value": "",
+                "type": "path",
+                "description": "Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Get schedule details"
+        },
+        {
+          "info": {
+            "name": "Update a schedule",
+            "type": "http"
+          },
+          "http": {
+            "method": "PATCH",
+            "url": "https://coasty.ai/v1/schedules/:schedule_id",
+            "params": [
+              {
+                "name": "schedule_id",
+                "value": "",
+                "type": "path",
+                "description": "Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Update a schedule"
+        },
+        {
+          "info": {
+            "name": "Delete a schedule",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://coasty.ai/v1/schedules/:schedule_id",
+            "params": [
+              {
+                "name": "schedule_id",
+                "value": "",
+                "type": "path",
+                "description": "Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Delete a schedule"
+        },
+        {
+          "info": {
+            "name": "Pause a schedule",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/schedules/:schedule_id/pause",
+            "params": [
+              {
+                "name": "schedule_id",
+                "value": "",
+                "type": "path",
+                "description": "Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Pause a schedule"
+        },
+        {
+          "info": {
+            "name": "Resume a paused schedule",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/schedules/:schedule_id/resume",
+            "params": [
+              {
+                "name": "schedule_id",
+                "value": "",
+                "type": "path",
+                "description": "Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Resume a paused schedule"
+        },
+        {
+          "info": {
+            "name": "Trigger a schedule run immediately",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/schedules/:schedule_id/run",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              }
+            ],
+            "params": [
+              {
+                "name": "schedule_id",
+                "value": "",
+                "type": "path",
+                "description": "Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Trigger a schedule run immediately"
+        },
+        {
+          "info": {
+            "name": "List historical runs of a schedule",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/schedules/:schedule_id/runs",
+            "params": [
+              {
+                "name": "schedule_id",
+                "value": "",
+                "type": "path",
+                "description": "Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+              },
+              {
+                "name": "cursor",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "status",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "limit",
+                "value": "",
+                "type": "query"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "List historical runs of a schedule"
+        },
+        {
+          "info": {
+            "name": "Get a single run",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/schedules/:schedule_id/runs/:run_id",
+            "params": [
+              {
+                "name": "schedule_id",
+                "value": "",
+                "type": "path",
+                "description": "Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+              },
+              {
+                "name": "run_id",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Get a single run"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

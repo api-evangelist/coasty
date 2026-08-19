@@ -1,0 +1,208 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Coasty Public keys API",
+    "version": "1.0.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "X-API-Key",
+      "value": "{{X-API-Key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "keys",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "Usage summary for a billing period",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/usage",
+            "params": [
+              {
+                "name": "period",
+                "value": "",
+                "type": "query"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Usage summary for a billing period"
+        },
+        {
+          "info": {
+            "name": "Fetch a result by Idempotency-Key",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/idempotency/:key",
+            "params": [
+              {
+                "name": "key",
+                "value": "",
+                "type": "path",
+                "description": "The Idempotency-Key whose result you want to collect (≤128 chars, [A-Za-z0-9_-:])."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Collect a prior mutating call's result by its Idempotency-Key alone (for clients that lost the original response). 'completed' returns the original body + original_status; 'processing' means it is still running; unknown/expired is 404."
+        },
+        {
+          "info": {
+            "name": "List API keys",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/keys",
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "List API keys"
+        },
+        {
+          "info": {
+            "name": "Create an API key",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/keys",
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns the raw key ONCE. Subsequent reads only return the prefix."
+        },
+        {
+          "info": {
+            "name": "Revoke an API key",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://coasty.ai/v1/keys/:key_id",
+            "params": [
+              {
+                "name": "key_id",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Revoke an API key"
+        },
+        {
+          "info": {
+            "name": "List stored BYOK LLM keys",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/llm/keys",
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `llm_keys` (granted to new live keys by default). Requires a live API key; sandbox keys cannot inspect the production credential store. Returns non-secret metadata only — provider, sha256-prefix fingerprint, timestamps. The key itself is never returned."
+        },
+        {
+          "info": {
+            "name": "Store (upsert) your own provider LLM key",
+            "type": "http"
+          },
+          "http": {
+            "method": "PUT",
+            "url": "https://coasty.ai/v1/llm/keys/:provider",
+            "params": [
+              {
+                "name": "provider",
+                "value": "",
+                "type": "path",
+                "description": "The BYOK provider: anthropic or openai. 'managed' has no storable key and any other value is 422 LLM_PROVIDER_UNSUPPORTED."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `llm_keys`. Requires a live API key; sandbox keys cannot modify the production credential store. Stores the caller's own Anthropic/OpenAI API key for BYOK, AES-256-GCM encrypted at rest. The plaintext key exists only in this request body; every response carries only the non-secret sha256-prefix `key_fingerprint` — the key is never returned, logged, or echoed again. Naturally idempotent (an upsert), so no Idempotency-Key is needed."
+        },
+        {
+          "info": {
+            "name": "Delete your stored BYOK LLM key",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://coasty.ai/v1/llm/keys/:provider",
+            "params": [
+              {
+                "name": "provider",
+                "value": "",
+                "type": "path",
+                "description": "The BYOK provider: anthropic or openai. 'managed' has no storable key and any other value is 422 LLM_PROVIDER_UNSUPPORTED."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `llm_keys`. Requires a live API key; sandbox keys cannot modify the production credential store. Deletes the stored key for the provider — 404 LLM_KEY_NOT_FOUND when none exists. Schedules that opted into this provider then fail loudly at fire time with LLM_KEY_NOT_CONFIGURED; they never silently run on Coasty's platform keys."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

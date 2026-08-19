@@ -1,0 +1,374 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Coasty Public keys workflows API",
+    "version": "1.0.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "X-API-Key",
+      "value": "{{X-API-Key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "workflows",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List workflows",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/workflows",
+            "params": [
+              {
+                "name": "limit",
+                "value": "",
+                "type": "query"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `workflows:read`. Free. `limit` 1-200 (default 20)."
+        },
+        {
+          "info": {
+            "name": "Create a workflow",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/workflows",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `workflows:write`. Free (definition only). Creates a versioned workflow from a DSL `definition`."
+        },
+        {
+          "info": {
+            "name": "List workflow runs",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/workflows/runs",
+            "params": [
+              {
+                "name": "workflow_id",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "limit",
+                "value": "",
+                "type": "query"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `workflows:read`. Free. Optional `workflow_id` filter and `limit` (1-200, default 20)."
+        },
+        {
+          "info": {
+            "name": "Start an ad-hoc workflow run",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/workflows/runs",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `workflows:write`. Runs an inline `definition` without saving it. Each `task` step bills at the /v1/predict rate under the optional `budget_cents` cap; other step types are free. Test keys never bill. `webhook_secret` is returned ONCE."
+        },
+        {
+          "info": {
+            "name": "Get a workflow run",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/workflows/runs/:run_id",
+            "params": [
+              {
+                "name": "run_id",
+                "value": "",
+                "type": "path",
+                "description": "Run UUID (also used for workflow runs)."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `workflows:read`. Free."
+        },
+        {
+          "info": {
+            "name": "Stream workflow run events (SSE)",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/workflows/runs/:run_id/events",
+            "headers": [
+              {
+                "name": "Last-Event-ID",
+                "value": ""
+              }
+            ],
+            "params": [
+              {
+                "name": "run_id",
+                "value": "",
+                "type": "path",
+                "description": "Run UUID (also used for workflow runs)."
+              },
+              {
+                "name": "after",
+                "value": "",
+                "type": "query"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `workflows:read`. Free. Durable SSE stream; resume with `Last-Event-ID` or `?after=<seq>`. The edge may rotate a connection after 300 seconds, so reconnect with the last sequence until the terminal event arrives."
+        },
+        {
+          "info": {
+            "name": "Cancel a workflow run",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/workflows/runs/:run_id/cancel",
+            "params": [
+              {
+                "name": "run_id",
+                "value": "",
+                "type": "path",
+                "description": "Run UUID (also used for workflow runs)."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `workflows:write`. Free."
+        },
+        {
+          "info": {
+            "name": "Approve or reject a paused workflow run",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/workflows/runs/:run_id/resume",
+            "params": [
+              {
+                "name": "run_id",
+                "value": "",
+                "type": "path",
+                "description": "Run UUID (also used for workflow runs)."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `workflows:write`. Free. Approves (continues) or rejects (fails) a run paused on a `human_approval` step."
+        },
+        {
+          "info": {
+            "name": "Get a workflow",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/workflows/:workflow_id",
+            "params": [
+              {
+                "name": "workflow_id",
+                "value": "",
+                "type": "path",
+                "description": "Workflow UUID."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `workflows:read`. Free."
+        },
+        {
+          "info": {
+            "name": "Update a workflow",
+            "type": "http"
+          },
+          "http": {
+            "method": "PUT",
+            "url": "https://coasty.ai/v1/workflows/:workflow_id",
+            "params": [
+              {
+                "name": "workflow_id",
+                "value": "",
+                "type": "path",
+                "description": "Workflow UUID."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `workflows:write`. Free. Bumps the workflow `version`."
+        },
+        {
+          "info": {
+            "name": "Archive a workflow",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://coasty.ai/v1/workflows/:workflow_id",
+            "params": [
+              {
+                "name": "workflow_id",
+                "value": "",
+                "type": "path",
+                "description": "Workflow UUID."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `workflows:write`. Free. Archives the workflow."
+        },
+        {
+          "info": {
+            "name": "Start a run of a saved workflow",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/workflows/:workflow_id/runs",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              },
+              {
+                "name": "X-LLM-Provider",
+                "value": ""
+              },
+              {
+                "name": "X-LLM-Api-Key",
+                "value": ""
+              },
+              {
+                "name": "X-LLM-Model",
+                "value": ""
+              }
+            ],
+            "params": [
+              {
+                "name": "workflow_id",
+                "value": "",
+                "type": "path",
+                "description": "Workflow UUID."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `workflows:write`. Runs the saved workflow. Each `task` step bills at the /v1/predict rate under the optional `budget_cents` cap; other steps are free. Test keys never bill. `webhook_secret` is returned ONCE. BYOK: opt in via the body `llm` block or the X-LLM-* headers to run every task step's LLM calls on YOUR provider key (no silent fallback)."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

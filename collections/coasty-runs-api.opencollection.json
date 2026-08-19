@@ -1,0 +1,209 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Coasty Public keys runs API",
+    "version": "1.0.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "X-API-Key",
+      "value": "{{X-API-Key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "runs",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List runs",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/runs",
+            "params": [
+              {
+                "name": "status",
+                "value": "",
+                "type": "query"
+              },
+              {
+                "name": "limit",
+                "value": "",
+                "type": "query"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `runs:read`. Free. Optional `status` filter and `limit` (1-200, default 20)."
+        },
+        {
+          "info": {
+            "name": "Start an autonomous run",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/runs",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              },
+              {
+                "name": "X-LLM-Provider",
+                "value": ""
+              },
+              {
+                "name": "X-LLM-Api-Key",
+                "value": ""
+              },
+              {
+                "name": "X-LLM-Model",
+                "value": ""
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `runs:write`. Drives `task` to completion on `machine_id`, running the screenshot→act→verify loop server-side. Each agent step bills at the /v1/predict rate (~5 credits/step, scales with cua_version); a 402 is returned up front if the wallet cannot afford one step. Test keys (sk-coasty-test-*) never bill. `webhook_secret` is returned ONCE. BYOK: opt in via the body `llm` block or the X-LLM-* headers and every LLM call runs on YOUR provider key; the key is snapshotted encrypted for crash-r"
+        },
+        {
+          "info": {
+            "name": "Get a run",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/runs/:run_id",
+            "params": [
+              {
+                "name": "run_id",
+                "value": "",
+                "type": "path",
+                "description": "Run UUID (also used for workflow runs)."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `runs:read`. Free. Returns status, result, and credits charged."
+        },
+        {
+          "info": {
+            "name": "Stream run events (SSE)",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/runs/:run_id/events",
+            "headers": [
+              {
+                "name": "Last-Event-ID",
+                "value": ""
+              }
+            ],
+            "params": [
+              {
+                "name": "run_id",
+                "value": "",
+                "type": "path",
+                "description": "Run UUID (also used for workflow runs)."
+              },
+              {
+                "name": "after",
+                "value": "",
+                "type": "query"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `runs:read`. Free. A durable Server-Sent Events stream. Resume with the `Last-Event-ID` header or `?after=<seq>`. The edge may rotate a connection after 300 seconds, so reconnect with the last sequence until a terminal `done` event arrives."
+        },
+        {
+          "info": {
+            "name": "Cancel a run",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/runs/:run_id/cancel",
+            "params": [
+              {
+                "name": "run_id",
+                "value": "",
+                "type": "path",
+                "description": "Run UUID (also used for workflow runs)."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `runs:write`. Free. Cancels an in-flight run."
+        },
+        {
+          "info": {
+            "name": "Resume a run after human takeover",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/runs/:run_id/resume",
+            "params": [
+              {
+                "name": "run_id",
+                "value": "",
+                "type": "path",
+                "description": "Run UUID (also used for workflow runs)."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `runs:write`. Free. Resumes a run paused in `awaiting_human`. Body is optional."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

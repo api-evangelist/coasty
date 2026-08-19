@@ -1,0 +1,165 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Coasty Public keys triggers API",
+    "version": "1.0.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "X-API-Key",
+      "value": "{{X-API-Key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "triggers",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List triggers attached to a schedule",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/schedules/:schedule_id/triggers",
+            "params": [
+              {
+                "name": "schedule_id",
+                "value": "",
+                "type": "path",
+                "description": "Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "List triggers attached to a schedule"
+        },
+        {
+          "info": {
+            "name": "Add a trigger (webhook | chain)",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/schedules/:schedule_id/triggers",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              }
+            ],
+            "params": [
+              {
+                "name": "schedule_id",
+                "value": "",
+                "type": "path",
+                "description": "Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "For `webhook`, the response includes a one-time HMAC `webhook_secret` — store it now or rotate the trigger. Chain triggers support a max depth of 5."
+        },
+        {
+          "info": {
+            "name": "Remove a trigger",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://coasty.ai/v1/schedules/:schedule_id/triggers/:trigger_id",
+            "params": [
+              {
+                "name": "schedule_id",
+                "value": "",
+                "type": "path",
+                "description": "Schedule UUID, or `sch_test_<8-32 lowercase hex>` for sandbox keys."
+              },
+              {
+                "name": "trigger_id",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Remove a trigger"
+        },
+        {
+          "info": {
+            "name": "Fire a schedule from an HMAC-authenticated external webhook",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/triggers/webhook/:webhook_id",
+            "headers": [
+              {
+                "name": "Coasty-Signature",
+                "value": ""
+              },
+              {
+                "name": "X-Coasty-Signature",
+                "value": ""
+              }
+            ],
+            "params": [
+              {
+                "name": "webhook_id",
+                "value": "",
+                "type": "path"
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "Coasty-Signature",
+              "value": "{{Coasty-Signature}}",
+              "placement": "header"
+            }
+          },
+          "docs": "No Coasty API key is used. The request is authenticated with HMAC-SHA256 over `<unix_ts>.<body>` using the secret from trigger creation. Send either `Coasty-Signature: t=<ts>,v1=<sig>` or its `X-Coasty-Signature` compatibility alias. Replay window 5 minutes. Body capped at 1 MB. Repeated identical (webhook_id, body) within 60s are deduped."
+        },
+        {
+          "info": {
+            "name": "Triggers API health check",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/triggers/health"
+          },
+          "docs": "Triggers API health check"
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}

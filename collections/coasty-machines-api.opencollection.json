@@ -1,0 +1,544 @@
+{
+  "opencollection": "1.0.0",
+  "info": {
+    "name": "Coasty Public keys machines API",
+    "version": "1.0.0"
+  },
+  "request": {
+    "auth": {
+      "type": "apikey",
+      "key": "X-API-Key",
+      "value": "{{X-API-Key}}",
+      "placement": "header"
+    }
+  },
+  "items": [
+    {
+      "info": {
+        "name": "machines",
+        "type": "folder"
+      },
+      "items": [
+        {
+          "info": {
+            "name": "List machines",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/machines",
+            "params": [
+              {
+                "name": "limit",
+                "value": "",
+                "type": "query"
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "List machines"
+        },
+        {
+          "info": {
+            "name": "Provision a new VM",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/machines",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Managed VM provisioning. Linux defaults are cheap (1 cpu / 2 GB / 10 GB) and bill at agent-minute rates. Test keys (sk-coasty-test-*) return mock VMs with no cloud calls."
+        },
+        {
+          "info": {
+            "name": "Machines API health check",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/machines/health"
+          },
+          "docs": "Machines API health check"
+        },
+        {
+          "info": {
+            "name": "Get the live machine runtime rate card",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/machines/pricing",
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `machines:read`. Returns runtime rates, one-time charges, billing granularity, insufficient-funds behavior, and TTL bounds."
+        },
+        {
+          "info": {
+            "name": "What is billing me right now",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/billing/active",
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Lists every API-billed machine currently metering your wallet (running OR stopped — stopped bills at the storage-only rate). current_run_rate_cents_per_hour is the summed instantaneous burn rate. Test-mode keys return an empty fleet (active: [], rate 0). 1 credit = 1 cent."
+        },
+        {
+          "info": {
+            "name": "Get machine details",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/machines/:machine_id",
+            "params": [
+              {
+                "name": "machine_id",
+                "value": "",
+                "type": "path",
+                "description": "Machine UUID, or `mch_test_<8-32 lowercase hex>` for sandbox/test-mode keys."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Get machine details"
+        },
+        {
+          "info": {
+            "name": "Set, extend, or clear a machine auto-destroy lease",
+            "type": "http"
+          },
+          "http": {
+            "method": "PATCH",
+            "url": "https://coasty.ai/v1/machines/:machine_id",
+            "params": [
+              {
+                "name": "machine_id",
+                "value": "",
+                "type": "path",
+                "description": "Machine UUID, or `mch_test_<8-32 lowercase hex>` for sandbox/test-mode keys."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Scope: `machines:write`. `ttl_minutes=0` clears auto-destroy; values 5..10080 schedule termination from now."
+        },
+        {
+          "info": {
+            "name": "Terminate a machine",
+            "type": "http"
+          },
+          "http": {
+            "method": "DELETE",
+            "url": "https://coasty.ai/v1/machines/:machine_id",
+            "params": [
+              {
+                "name": "machine_id",
+                "value": "",
+                "type": "path",
+                "description": "Machine UUID, or `mch_test_<8-32 lowercase hex>` for sandbox/test-mode keys."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Irreversible. Stops billing the agent-minute rate."
+        },
+        {
+          "info": {
+            "name": "Start a stopped machine",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/machines/:machine_id/start",
+            "params": [
+              {
+                "name": "machine_id",
+                "value": "",
+                "type": "path",
+                "description": "Machine UUID, or `mch_test_<8-32 lowercase hex>` for sandbox/test-mode keys."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Start a stopped machine"
+        },
+        {
+          "info": {
+            "name": "Stop a running machine",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/machines/:machine_id/stop",
+            "params": [
+              {
+                "name": "machine_id",
+                "value": "",
+                "type": "path",
+                "description": "Machine UUID, or `mch_test_<8-32 lowercase hex>` for sandbox/test-mode keys."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Stop a running machine"
+        },
+        {
+          "info": {
+            "name": "Restart a running machine",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/machines/:machine_id/restart",
+            "params": [
+              {
+                "name": "machine_id",
+                "value": "",
+                "type": "path",
+                "description": "Machine UUID, or `mch_test_<8-32 lowercase hex>` for sandbox/test-mode keys."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Restart a running machine"
+        },
+        {
+          "info": {
+            "name": "Snapshot a machine",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/machines/:machine_id/snapshot",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              }
+            ],
+            "params": [
+              {
+                "name": "machine_id",
+                "value": "",
+                "type": "path",
+                "description": "Machine UUID, or `mch_test_<8-32 lowercase hex>` for sandbox/test-mode keys."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Captures a restorable machine image. Requires `snapshots:write`. The configured one-time fee is charged before dispatch. A conclusive pre-creation rejection is refunded; a timeout, 5xx, or malformed post-dispatch result may already have created the image and returns terminal 503 SNAPSHOT_OUTCOME_UNKNOWN without a blind refund/re-execution."
+        },
+        {
+          "info": {
+            "name": "Capture a screenshot of the machine",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/machines/:machine_id/screenshot",
+            "params": [
+              {
+                "name": "machine_id",
+                "value": "",
+                "type": "path",
+                "description": "Machine UUID, or `mch_test_<8-32 lowercase hex>` for sandbox/test-mode keys."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Capture a screenshot of the machine"
+        },
+        {
+          "info": {
+            "name": "Get SSH key + VNC password (HIGH-RISK)",
+            "type": "http"
+          },
+          "http": {
+            "method": "GET",
+            "url": "https://coasty.ai/v1/machines/:machine_id/connection",
+            "params": [
+              {
+                "name": "machine_id",
+                "value": "",
+                "type": "path",
+                "description": "Machine UUID, or `mch_test_<8-32 lowercase hex>` for sandbox/test-mode keys."
+              }
+            ],
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Returns plaintext credentials. Gated by `connection:read` scope. Response is `Cache-Control: no-store`. Store credentials in a secrets manager — Coasty cannot re-issue them; rotate by terminating + reprovisioning."
+        },
+        {
+          "info": {
+            "name": "Execute a single action on the machine",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/machines/:machine_id/actions",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              }
+            ],
+            "params": [
+              {
+                "name": "machine_id",
+                "value": "",
+                "type": "path",
+                "description": "Machine UUID, or `mch_test_<8-32 lowercase hex>` for sandbox/test-mode keys."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Required scope varies by command: terminal_* → `terminal:exec`; file_* → `files:read|write`; browser_execute → `browser:execute`; everything else → `actions:exec`. See the ActionRequest command enum and /v1/models for current capabilities."
+        },
+        {
+          "info": {
+            "name": "Execute up to 50 sequential actions",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/machines/:machine_id/actions/batch",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              }
+            ],
+            "params": [
+              {
+                "name": "machine_id",
+                "value": "",
+                "type": "path",
+                "description": "Machine UUID, or `mch_test_<8-32 lowercase hex>` for sandbox/test-mode keys."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Shell `&&`-style semantics: aborts on first failure when `stop_on_error=true` (default)."
+        },
+        {
+          "info": {
+            "name": "Browser convenience sub-API",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/machines/:machine_id/browser/:op",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              }
+            ],
+            "params": [
+              {
+                "name": "machine_id",
+                "value": "",
+                "type": "path",
+                "description": "Machine UUID, or `mch_test_<8-32 lowercase hex>` for sandbox/test-mode keys."
+              },
+              {
+                "name": "op",
+                "value": "",
+                "type": "path",
+                "description": "Browser sub-op. One of: open, navigate, click, type, dom, clickables, state, info, scroll, close, screenshot, wait, list-tabs, open-tab, close-tab, switch-tab."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Browser convenience sub-API"
+        },
+        {
+          "info": {
+            "name": "Execute a shell command",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/machines/:machine_id/terminal",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              }
+            ],
+            "params": [
+              {
+                "name": "machine_id",
+                "value": "",
+                "type": "path",
+                "description": "Machine UUID, or `mch_test_<8-32 lowercase hex>` for sandbox/test-mode keys."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Output truncated VM-side to 5000 chars. Hard cap 120s (Cloudflare edge timeout). Requires `terminal:exec` scope."
+        },
+        {
+          "info": {
+            "name": "File operations sub-API",
+            "type": "http"
+          },
+          "http": {
+            "method": "POST",
+            "url": "https://coasty.ai/v1/machines/:machine_id/files/:op",
+            "headers": [
+              {
+                "name": "Idempotency-Key",
+                "value": ""
+              }
+            ],
+            "params": [
+              {
+                "name": "machine_id",
+                "value": "",
+                "type": "path",
+                "description": "Machine UUID, or `mch_test_<8-32 lowercase hex>` for sandbox/test-mode keys."
+              },
+              {
+                "name": "op",
+                "value": "",
+                "type": "path",
+                "description": "File sub-op. Read scope: read, exists, list, list-directory, download, list-downloads. Write scope: write, edit, append, delete, delete-directory."
+              }
+            ],
+            "body": {
+              "type": "json",
+              "data": "{}"
+            },
+            "auth": {
+              "type": "apikey",
+              "key": "X-API-Key",
+              "value": "{{X-API-Key}}",
+              "placement": "header"
+            }
+          },
+          "docs": "Read ops require `files:read`; mutating ops require `files:write`. Body capped at 50 MB."
+        }
+      ]
+    }
+  ],
+  "bundled": true
+}
