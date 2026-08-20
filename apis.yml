@@ -54,6 +54,8 @@ apis:
   humanURL: https://coasty.ai/docs
   baseURL: https://coasty.ai
   tags:
+  - Keys
+  tags_raw:
   - keys
   properties:
   - type: OpenAPI
@@ -70,6 +72,8 @@ apis:
   humanURL: https://coasty.ai/docs
   baseURL: https://coasty.ai
   tags:
+  - Machines
+  tags_raw:
   - machines
   properties:
   - type: OpenAPI
@@ -86,6 +90,8 @@ apis:
   humanURL: https://coasty.ai/docs
   baseURL: https://coasty.ai
   tags:
+  - Predict
+  tags_raw:
   - predict
   properties:
   - type: OpenAPI
@@ -102,6 +108,8 @@ apis:
   humanURL: https://coasty.ai/docs
   baseURL: https://coasty.ai
   tags:
+  - Runs
+  tags_raw:
   - runs
   properties:
   - type: OpenAPI
@@ -118,6 +126,8 @@ apis:
   humanURL: https://coasty.ai/docs
   baseURL: https://coasty.ai
   tags:
+  - Schedules
+  tags_raw:
   - schedules
   properties:
   - type: OpenAPI
@@ -134,6 +144,8 @@ apis:
   humanURL: https://coasty.ai/docs
   baseURL: https://coasty.ai
   tags:
+  - Sessions
+  tags_raw:
   - sessions
   properties:
   - type: OpenAPI
@@ -150,6 +162,8 @@ apis:
   humanURL: https://coasty.ai/docs
   baseURL: https://coasty.ai
   tags:
+  - Triggers
+  tags_raw:
   - triggers
   properties:
   - type: OpenAPI
@@ -166,6 +180,8 @@ apis:
   humanURL: https://coasty.ai/docs
   baseURL: https://coasty.ai
   tags:
+  - Workflows
+  tags_raw:
   - workflows
   properties:
   - type: OpenAPI
