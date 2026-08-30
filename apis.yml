@@ -84,7 +84,7 @@ apis:
   humanURL: https://coasty.ai/docs
   baseURL: https://coasty.ai
   tags:
-  - Machines
+  - machines
   tags_raw:
   - machines
   properties:
@@ -102,7 +102,7 @@ apis:
   humanURL: https://coasty.ai/docs
   baseURL: https://coasty.ai
   tags:
-  - Predict
+  - predict
   tags_raw:
   - predict
   properties:
@@ -120,7 +120,7 @@ apis:
   humanURL: https://coasty.ai/docs
   baseURL: https://coasty.ai
   tags:
-  - Runs
+  - runs
   tags_raw:
   - runs
   properties:
