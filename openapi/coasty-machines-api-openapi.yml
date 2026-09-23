@@ -1,9 +1,14 @@
-openapi: 3.1.0
+openapi: 3.2.0
 info:
-  title: Coasty Public keys machines API
+  title: Coasty Public Machines API
   version: 1.0.0
   summary: Computer Use Agents, scheduled automation, and managed VMs.
-  description: "# Coasty Public API\n\nCoasty is a Computer Use Agent (CUA) platform: predict actions from screenshots,\nprovision managed VMs, and run scheduled automation against them.\n\n## Authentication\n\nAll endpoints (except `/v1/triggers/webhook/{webhook_id}` and health checks) require an API key.\nPass it as either:\n\n- `X-API-Key: sk-coasty-live-...` (or `sk-coasty-test-...` for sandbox)\n- `Authorization: Bearer sk-coasty-live-...`\n\nThe external webhook endpoint does not use an API key, but it is authenticated:\nsend the HMAC-SHA256 `Coasty-Signature` credential documented on that operation.\n\nTest-mode keys (`sk-coasty-test-*`) hit the same validation paths as live keys but\nreturn mock VMs / mock action results and never bill credits — ideal for CI.\n\n## Pricing & budgeting\n\nPer-call rates (subject to change — see `lib/pricing/tiers.ts METERED_RATES`):\n\n| Endpoint | Credits |\n|---|---|\n| `POST /v1/predict` | ~5 |\n| `POST /v1/sessions` | 10 |\n| `POST /v1/sessions/{id}/predict` | ~4 |\n| `POST /v1/ground` | ~3 |\n| `POST /v1/parse` | 0 (free) |\n\nLong-running CUA jobs orchestrated through the dashboard (not this API) bill at\n10 credits/minute with a 20-credit minimum. Subscription tiers (`free | starter |\nprofessional | enterprise`) gate feature availability (e.g. custom system prompts),\nschedule counts, and the maximum trajectory length.\n\n## Errors\n\nEvery error response uses the same envelope:\n\n```json\n{\n  \"error\": {\n    \"code\": \"INSUFFICIENT_CREDITS\",\n    \"message\": \"Need 5, have 2.\",\n    \"type\": \"billing_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}\n```\n\nInclude the `request_id` in support requests.\n\n## Idempotency\n\nOperations marked `x-idempotency: reserve-and-replay` accept `Idempotency-Key:\n<≤128 chars of [A-Za-z0-9_-:]>`. Replays\nof the same key + identical body return the original response (with\n`X-Coasty-Idempotent-Replay: true`) for 24 h. Reusing the key with a different body\nis a 422 `IDEMPOTENCY_KEY_REUSED`.\nOperations marked `x-idempotency: webhook-payload-dedup` instead deduplicate the\nsame webhook id + identical raw body for 60 seconds; they do not accept an\nIdempotency-Key.\n\n## Clients & MCP\n\nUse the HTTP API directly from any language. Official TypeScript and Python SDKs\nare not currently published; generate a client from this OpenAPI document if needed.\n- MCP server: `npx -y @coasty/mcp` (see `x-mcp-server`)\n\n## Reference\n\nComplete (machine-readable) spec is hosted at `/.well-known/openapi.json` and\n`/openapi.json` (Stripe / Vercel conventions)."
+  description: '# Coasty Public API
+
+
+    Coasty is a Computer Use Agent (CUA) platform: predict actions from screenshots,
+
+    provision managed VMs, and run scheduled automation against them.'
   contact:
     name: Coasty Developer Support
     url: https://coasty.ai/support
@@ -21,13 +26,13 @@ security:
 - apiKey: []
 - bearerAuth: []
 tags:
-- name: machines
+- name: Machines
   description: Provision and control managed VMs.
 paths:
   /v1/machines:
     post:
       tags:
-      - machines
+      - Machines
       operationId: provisionMachine
       summary: Provision a new VM
       description: Managed VM provisioning. Linux defaults are cheap (1 cpu / 2 GB / 10 GB) and bill at agent-minute rates. Test keys (sk-coasty-test-*) return mock VMs with no cloud calls.
@@ -97,7 +102,7 @@ paths:
       x-idempotency: reserve-and-replay
     get:
       tags:
-      - machines
+      - Machines
       operationId: listMachines
       summary: List machines
       security:
@@ -162,7 +167,7 @@ paths:
   /v1/machines/health:
     get:
       tags:
-      - machines
+      - Machines
       operationId: machinesHealth
       summary: Machines API health check
       security: []
@@ -184,7 +189,7 @@ paths:
   /v1/machines/pricing:
     get:
       tags:
-      - machines
+      - Machines
       operationId: getMachinePricing
       summary: Get the live machine runtime rate card
       description: 'Scope: `machines:read`. Returns runtime rates, one-time charges, billing granularity, insufficient-funds behavior, and TTL bounds.'
@@ -241,7 +246,7 @@ paths:
   /v1/billing/active:
     get:
       tags:
-      - machines
+      - Machines
       operationId: getActiveBilling
       summary: What is billing me right now
       description: 'Lists every API-billed machine currently metering your wallet (running OR stopped — stopped bills at the storage-only rate). current_run_rate_cents_per_hour is the summed instantaneous burn rate. Test-mode keys return an empty fleet (active: [], rate 0). 1 credit = 1 cent.'
@@ -300,7 +305,7 @@ paths:
     - $ref: '#/components/parameters/MachineId'
     get:
       tags:
-      - machines
+      - Machines
       operationId: getMachine
       summary: Get machine details
       security:
@@ -355,7 +360,7 @@ paths:
       x-idempotency: none
     delete:
       tags:
-      - machines
+      - Machines
       operationId: terminateMachine
       summary: Terminate a machine
       description: Irreversible. Stops billing the agent-minute rate.
@@ -411,7 +416,7 @@ paths:
       x-idempotency: none
     patch:
       tags:
-      - machines
+      - Machines
       operationId: updateMachine
       summary: Set, extend, or clear a machine auto-destroy lease
       description: 'Scope: `machines:write`. `ttl_minutes=0` clears auto-destroy; values 5..10080 schedule termination from now.'
@@ -476,7 +481,7 @@ paths:
     - $ref: '#/components/parameters/MachineId'
     post:
       tags:
-      - machines
+      - Machines
       operationId: startMachine
       summary: Start a stopped machine
       security:
@@ -534,7 +539,7 @@ paths:
     - $ref: '#/components/parameters/MachineId'
     post:
       tags:
-      - machines
+      - Machines
       operationId: stopMachine
       summary: Stop a running machine
       security:
@@ -592,7 +597,7 @@ paths:
     - $ref: '#/components/parameters/MachineId'
     post:
       tags:
-      - machines
+      - Machines
       operationId: restartMachine
       summary: Restart a running machine
       security:
@@ -650,7 +655,7 @@ paths:
     - $ref: '#/components/parameters/MachineId'
     post:
       tags:
-      - machines
+      - Machines
       operationId: snapshotMachine
       summary: Snapshot a machine
       description: Captures a restorable machine image. Requires `snapshots:write`. The configured one-time fee is charged before dispatch. A conclusive pre-creation rejection is refunded; a timeout, 5xx, or malformed post-dispatch result may already have created the image and returns terminal 503 SNAPSHOT_OUTCOME_UNKNOWN without a blind refund/re-execution.
@@ -719,7 +724,7 @@ paths:
     - $ref: '#/components/parameters/MachineId'
     get:
       tags:
-      - machines
+      - Machines
       operationId: getScreenshot
       summary: Capture a screenshot of the machine
       security:
@@ -777,7 +782,7 @@ paths:
     - $ref: '#/components/parameters/MachineId'
     get:
       tags:
-      - machines
+      - Machines
       operationId: getConnectionDetails
       summary: Get SSH key + VNC password (HIGH-RISK)
       description: 'Returns plaintext credentials. Gated by `connection:read` scope. Response is `Cache-Control: no-store`. Store credentials in a secrets manager — Coasty cannot re-issue them; rotate by terminating + reprovisioning.'
@@ -836,7 +841,7 @@ paths:
     - $ref: '#/components/parameters/MachineId'
     post:
       tags:
-      - machines
+      - Machines
       operationId: executeAction
       summary: Execute a single action on the machine
       description: 'Required scope varies by command: terminal_* → `terminal:exec`; file_* → `files:read|write`; browser_execute → `browser:execute`; everything else → `actions:exec`. See the ActionRequest command enum and /v1/models for current capabilities.'
@@ -913,7 +918,7 @@ paths:
     - $ref: '#/components/parameters/MachineId'
     post:
       tags:
-      - machines
+      - Machines
       operationId: executeBatch
       summary: Execute up to 50 sequential actions
       description: 'Shell `&&`-style semantics: aborts on first failure when `stop_on_error=true` (default).'
@@ -1013,7 +1018,7 @@ paths:
         - switch-tab
     post:
       tags:
-      - machines
+      - Machines
       operationId: browserOp
       summary: Browser convenience sub-API
       security:
@@ -1085,7 +1090,7 @@ paths:
     - $ref: '#/components/parameters/MachineId'
     post:
       tags:
-      - machines
+      - Machines
       operationId: terminalExec
       summary: Execute a shell command
       description: Output truncated VM-side to 5000 chars. Hard cap 120s (Cloudflare edge timeout). Requires `terminal:exec` scope.
@@ -1176,7 +1181,7 @@ paths:
         - delete-directory
     post:
       tags:
-      - machines
+      - Machines
       operationId: filesOp
       summary: File operations sub-API
       description: Read ops require `files:read`; mutating ops require `files:write`. Body capped at 50 MB.
@@ -1247,75 +1252,6 @@ paths:
       x-idempotency: reserve-and-replay
 components:
   schemas:
-    ProvisionRequest:
-      type: object
-      required:
-      - display_name
-      additionalProperties: false
-      properties:
-        display_name:
-          type: string
-          minLength: 1
-          maxLength: 64
-        os_type:
-          type: string
-          enum:
-          - linux
-          - windows
-          default: linux
-        desktop_enabled:
-          type: boolean
-          default: false
-        cpu_cores:
-          type:
-          - integer
-          - 'null'
-          minimum: 1
-          maximum: 16
-        memory_gb:
-          type:
-          - integer
-          - 'null'
-          minimum: 1
-          maximum: 64
-        storage_gb:
-          type:
-          - integer
-          - 'null'
-          minimum: 8
-          maximum: 500
-        restore_from_snapshot:
-          type:
-          - boolean
-          - 'null'
-          default: false
-        ttl_minutes:
-          type:
-          - integer
-          - 'null'
-          minimum: 5
-          maximum: 10080
-          description: Optional auto-destroy lease, measured from creation (5 minutes to 7 days).
-        metadata:
-          type: object
-          additionalProperties:
-            type: string
-          description: Max 16 entries; keys ≤64 chars, values ≤256 chars.
-    BatchActionRequest:
-      type: object
-      required:
-      - steps
-      additionalProperties: false
-      properties:
-        steps:
-          type: array
-          minItems: 1
-          maxItems: 50
-          items:
-            $ref: '#/components/schemas/ActionRequest'
-        stop_on_error:
-          type: boolean
-          default: true
     MachineRecord:
       type: object
       required:
@@ -1392,6 +1328,31 @@ components:
         billing:
           $ref: '#/components/schemas/MachineBilling'
           description: How this API-provisioned machine is metered (omitted for non-API machines).
+    TerminalRequest:
+      type: object
+      required:
+      - command
+      additionalProperties: false
+      properties:
+        command:
+          type: string
+          minLength: 1
+          maxLength: 8192
+        timeout_ms:
+          type: integer
+          minimum: 1000
+          maximum: 120000
+          default: 30000
+        session_id:
+          type:
+          - string
+          - 'null'
+          maxLength: 128
+        cwd:
+          type:
+          - string
+          - 'null'
+          maxLength: 512
     ActionResultResponse:
       type: object
       required:
@@ -1425,208 +1386,6 @@ components:
           description: Auto-captured post-action screenshot for browser_* commands. Data URI base64.
         request_id:
           type: string
-    ScreenshotResponse:
-      type: object
-      required:
-      - machine_id
-      - image_b64
-      - mime_type
-      - width
-      - height
-      - captured_at
-      - request_id
-      properties:
-        machine_id:
-          type: string
-        image_b64:
-          type: string
-          description: 'Base64-encoded screenshot (no data: prefix).'
-        mime_type:
-          type: string
-          default: image/jpeg
-        width:
-          type: integer
-        height:
-          type: integer
-        captured_at:
-          type: string
-          format: date-time
-        request_id:
-          type: string
-    BillingActiveResponse:
-      type: object
-      required:
-      - active
-      - current_run_rate_cents_per_hour
-      - request_id
-      properties:
-        active:
-          type: array
-          items:
-            $ref: '#/components/schemas/BillingActiveItem'
-          description: Every API-billed machine currently metering (running OR stopped). Empty for test-mode keys.
-        current_run_rate_cents_per_hour:
-          type: integer
-          description: Summed instantaneous burn rate across the active list — total cents/hour right now.
-        request_id:
-          type: string
-    ApiError:
-      type: object
-      required:
-      - error
-      properties:
-        error:
-          type: object
-          required:
-          - code
-          - message
-          - type
-          - retryable
-          - retry_with_same_idempotency_key
-          - request_id
-          properties:
-            code:
-              type: string
-              description: Stable machine-readable error code (e.g. INVALID_API_KEY, INSUFFICIENT_CREDITS).
-              examples:
-              - INVALID_API_KEY
-            message:
-              type: string
-              description: Human-readable explanation. May include suggestions or examples.
-            type:
-              type: string
-              enum:
-              - auth_error
-              - validation_error
-              - rate_limit_error
-              - billing_error
-              - not_found_error
-              - state_error
-              - server_error
-              - client_error
-            request_id:
-              type: string
-              description: Server-assigned correlation ID. Include in support requests.
-              examples:
-              - req_a1b2c3d4e5f6
-            suggestion:
-              type: string
-              description: A concrete next step, auto-filled per code. LLM agents can act on it to self-recover.
-            retryable:
-              type: boolean
-              description: 'true when retrying the same call may succeed (transient server failures + back-pressure: INTERNAL_ERROR, DB_UNAVAILABLE, SERVICE_UNAVAILABLE, UPSTREAM_*, PREDICTION_FAILED, *_FAILED, RATE_LIMITED, TOO_MANY_RUNS, IDEMPOTENCY_IN_FLIGHT, ...). false for deterministic client errors. A CUA BILLING_UNAVAILABLE caused by refund uncertainty is false unless the server confirmed a shared recovery checkpoint. Present on EVERY error envelope, including gateway/5xx/timeout paths.'
-            retry_with_same_idempotency_key:
-              type: boolean
-              description: 'true only when the concrete response permits replay, the original operation is one of the exact 18 reserve-and-replay operations, and that original request already carried the key. Reuse that SAME key and identical body. A retryable error alone does not make an operation idempotent, and a key cannot be added retroactively. For CUA refund uncertainty this is true only after an exact shared checkpoint was confirmed; unkeyed or uncheckpointed responses are false and must not be retried automatically. A confirmed refunded failure sets this false even when retryable remains true: use a new key, because the old debit is compensated and wallet-guarded by IDEMPOTENCY_ALREADY_REFUNDED. false for deterministic errors.'
-            retry_after:
-              type:
-              - integer
-              - 'null'
-              description: Seconds to wait before retrying (accompanies retryable:true back-pressure codes; mirrors the Retry-After header).
-            examples:
-              type: object
-              additionalProperties: true
-              description: 'Machine-readable limits for self-correction. On PAYLOAD_TOO_LARGE / INVALID_SCREENSHOT: { max_base64_bytes: 10485760, max_mb: 10, min_base64_chars: 100, formats: ["png","jpeg"] }.'
-    BatchActionResponse:
-      type: object
-      required:
-      - machine_id
-      - results
-      - completed_count
-      - failed_count
-      - request_id
-      properties:
-        machine_id:
-          type: string
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/ActionResultResponse'
-        completed_count:
-          type: integer
-        failed_count:
-          type: integer
-        aborted:
-          type: boolean
-          default: false
-        request_id:
-          type: string
-    BillingActiveItem:
-      type: object
-      required:
-      - machine_id
-      - display_name
-      - status
-      - os_type
-      - rate_cents_per_hour
-      - running_credits_per_hour
-      - stopped_credits_per_hour
-      - accrued_cents
-      - total_credits_billed
-      - suspended_for_billing
-      properties:
-        machine_id:
-          type: string
-        display_name:
-          type: string
-        status:
-          type: string
-          enum:
-          - running
-          - starting
-          - stopping
-          - restarting
-          - stopped
-          - suspended
-        os_type:
-          type: string
-          enum:
-          - linux
-          - windows
-        rate_cents_per_hour:
-          type: integer
-          description: Hourly rate in this machine's current state.
-        running_credits_per_hour:
-          type: integer
-        stopped_credits_per_hour:
-          type: integer
-        accrued_cents:
-          type: integer
-          description: Cost of the current metering segment so far.
-        since:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          description: When the current segment started.
-        total_credits_billed:
-          type: integer
-        suspended_for_billing:
-          type: boolean
-        auto_destroy_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        ttl_minutes:
-          type:
-          - integer
-          - 'null'
-    UpdateMachineRequest:
-      type: object
-      required:
-      - ttl_minutes
-      additionalProperties: false
-      properties:
-        ttl_minutes:
-          type: integer
-          minimum: 0
-          maximum: 10080
-          description: 0 clears auto-destroy; otherwise the value must be between 5 and 10080.
-          oneOf:
-          - const: 0
-          - minimum: 5
-            maximum: 10080
     HealthResponse:
       type: object
       required:
@@ -1640,33 +1399,27 @@ components:
           type: string
         service:
           type: string
-    FilesOpRequest:
-      type: object
-      additionalProperties: false
-      properties:
-        parameters:
-          type: object
-          additionalProperties: true
-          description: 'Op-specific params: {path} for read; {path, content} for write; etc.'
-    UpdateMachineResponse:
+    SnapshotResponse:
       type: object
       required:
       - machine_id
-      - ttl_minutes
-      - auto_destroy_at
+      - snapshot_id
+      - name
+      - created_at
+      - credits_charged
       - request_id
       properties:
         machine_id:
           type: string
-        ttl_minutes:
-          type:
-          - integer
-          - 'null'
-        auto_destroy_at:
-          type:
-          - string
-          - 'null'
+        snapshot_id:
+          type: string
+        name:
+          type: string
+        created_at:
+          type: string
           format: date-time
+        credits_charged:
+          type: integer
         request_id:
           type: string
     ConnectionDetailsFull:
@@ -1731,6 +1484,30 @@ components:
           description: Actual desktop height, when reported by the machine.
         request_id:
           type: string
+    BatchActionResponse:
+      type: object
+      required:
+      - machine_id
+      - results
+      - completed_count
+      - failed_count
+      - request_id
+      properties:
+        machine_id:
+          type: string
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionResultResponse'
+        completed_count:
+          type: integer
+        failed_count:
+          type: integer
+        aborted:
+          type: boolean
+          default: false
+        request_id:
+          type: string
     BrowserOpRequest:
       type: object
       additionalProperties: false
@@ -1744,6 +1521,194 @@ components:
           - 'null'
           minimum: 1000
           maximum: 120000
+    LifecycleResponse:
+      type: object
+      required:
+      - machine_id
+      - status
+      - message
+      - request_id
+      properties:
+        machine_id:
+          type: string
+        status:
+          type: string
+        message:
+          type: string
+        request_id:
+          type: string
+    ProvisionRequest:
+      type: object
+      required:
+      - display_name
+      additionalProperties: false
+      properties:
+        display_name:
+          type: string
+          minLength: 1
+          maxLength: 64
+        os_type:
+          type: string
+          enum:
+          - linux
+          - windows
+          default: linux
+        desktop_enabled:
+          type: boolean
+          default: false
+        cpu_cores:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 16
+        memory_gb:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 64
+        storage_gb:
+          type:
+          - integer
+          - 'null'
+          minimum: 8
+          maximum: 500
+        restore_from_snapshot:
+          type:
+          - boolean
+          - 'null'
+          default: false
+        ttl_minutes:
+          type:
+          - integer
+          - 'null'
+          minimum: 5
+          maximum: 10080
+          description: Optional auto-destroy lease, measured from creation (5 minutes to 7 days).
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+          description: Max 16 entries; keys ≤64 chars, values ≤256 chars.
+    BatchActionRequest:
+      type: object
+      required:
+      - steps
+      additionalProperties: false
+      properties:
+        steps:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/ActionRequest'
+        stop_on_error:
+          type: boolean
+          default: true
+    ScreenshotResponse:
+      type: object
+      required:
+      - machine_id
+      - image_b64
+      - mime_type
+      - width
+      - height
+      - captured_at
+      - request_id
+      properties:
+        machine_id:
+          type: string
+        image_b64:
+          type: string
+          description: 'Base64-encoded screenshot (no data: prefix).'
+        mime_type:
+          type: string
+          default: image/jpeg
+        width:
+          type: integer
+        height:
+          type: integer
+        captured_at:
+          type: string
+          format: date-time
+        request_id:
+          type: string
+    GetMachineResponse:
+      type: object
+      required:
+      - machine
+      - request_id
+      properties:
+        machine:
+          $ref: '#/components/schemas/MachineRecord'
+        request_id:
+          type: string
+    ApiError:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          required:
+          - code
+          - message
+          - type
+          - retryable
+          - retry_with_same_idempotency_key
+          - request_id
+          properties:
+            code:
+              type: string
+              description: Stable machine-readable error code (e.g. INVALID_API_KEY, INSUFFICIENT_CREDITS).
+              examples:
+              - INVALID_API_KEY
+            message:
+              type: string
+              description: Human-readable explanation. May include suggestions or examples.
+            type:
+              type: string
+              enum:
+              - auth_error
+              - validation_error
+              - rate_limit_error
+              - billing_error
+              - not_found_error
+              - state_error
+              - server_error
+              - client_error
+            request_id:
+              type: string
+              description: Server-assigned correlation ID. Include in support requests.
+              examples:
+              - req_a1b2c3d4e5f6
+            suggestion:
+              type: string
+              description: A concrete next step, auto-filled per code. LLM agents can act on it to self-recover.
+            retryable:
+              type: boolean
+              description: 'true when retrying the same call may succeed (transient server failures + back-pressure: INTERNAL_ERROR, DB_UNAVAILABLE, SERVICE_UNAVAILABLE, UPSTREAM_*, PREDICTION_FAILED, *_FAILED, RATE_LIMITED, TOO_MANY_RUNS, IDEMPOTENCY_IN_FLIGHT, ...). false for deterministic client errors. A CUA BILLING_UNAVAILABLE caused by refund uncertainty is false unless the server confirmed a shared recovery checkpoint. Present on EVERY error envelope, including gateway/5xx/timeout paths.'
+            retry_with_same_idempotency_key:
+              type: boolean
+              description: 'true only when the concrete response permits replay, the original operation is one of the exact 18 reserve-and-replay operations, and that original request already carried the key. Reuse that SAME key and identical body. A retryable error alone does not make an operation idempotent, and a key cannot be added retroactively. For CUA refund uncertainty this is true only after an exact shared checkpoint was confirmed; unkeyed or uncheckpointed responses are false and must not be retried automatically. A confirmed refunded failure sets this false even when retryable remains true: use a new key, because the old debit is compensated and wallet-guarded by IDEMPOTENCY_ALREADY_REFUNDED. false for deterministic errors.'
+            retry_after:
+              type:
+              - integer
+              - 'null'
+              description: Seconds to wait before retrying (accompanies retryable:true back-pressure codes; mirrors the Retry-After header).
+            examples:
+              type: object
+              additionalProperties: true
+              description: 'Machine-readable limits for self-correction. On PAYLOAD_TOO_LARGE / INVALID_SCREENSHOT: { max_base64_bytes: 10485760, max_mb: 10, min_base64_chars: 100, formats: ["png","jpeg"] }.'
+    FilesOpRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        parameters:
+          type: object
+          additionalProperties: true
+          description: 'Op-specific params: {path} for read; {path, content} for write; etc.'
     MachinePricingResponse:
       type: object
       required:
@@ -1771,44 +1736,6 @@ components:
           default: false
         request_id:
           type: string
-    ProvisionResponse:
-      type: object
-      required:
-      - machine
-      - connection
-      - request_id
-      properties:
-        machine:
-          $ref: '#/components/schemas/MachineRecord'
-        connection:
-          $ref: '#/components/schemas/ConnectionDetailsRedacted'
-        request_id:
-          type: string
-    TerminalRequest:
-      type: object
-      required:
-      - command
-      additionalProperties: false
-      properties:
-        command:
-          type: string
-          minLength: 1
-          maxLength: 8192
-        timeout_ms:
-          type: integer
-          minimum: 1000
-          maximum: 120000
-          default: 30000
-        session_id:
-          type:
-          - string
-          - 'null'
-          maxLength: 128
-        cwd:
-          type:
-          - string
-          - 'null'
-          maxLength: 512
     MachineBilling:
       type: object
       description: Per-machine runtime billing state. 1 credit = 1 cent.
@@ -1851,20 +1778,131 @@ components:
           type:
           - integer
           - 'null'
-    LifecycleResponse:
+    BillingActiveItem:
       type: object
       required:
       - machine_id
+      - display_name
       - status
-      - message
+      - os_type
+      - rate_cents_per_hour
+      - running_credits_per_hour
+      - stopped_credits_per_hour
+      - accrued_cents
+      - total_credits_billed
+      - suspended_for_billing
+      properties:
+        machine_id:
+          type: string
+        display_name:
+          type: string
+        status:
+          type: string
+          enum:
+          - running
+          - starting
+          - stopping
+          - restarting
+          - stopped
+          - suspended
+        os_type:
+          type: string
+          enum:
+          - linux
+          - windows
+        rate_cents_per_hour:
+          type: integer
+          description: Hourly rate in this machine's current state.
+        running_credits_per_hour:
+          type: integer
+        stopped_credits_per_hour:
+          type: integer
+        accrued_cents:
+          type: integer
+          description: Cost of the current metering segment so far.
+        since:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the current segment started.
+        total_credits_billed:
+          type: integer
+        suspended_for_billing:
+          type: boolean
+        auto_destroy_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        ttl_minutes:
+          type:
+          - integer
+          - 'null'
+    BillingActiveResponse:
+      type: object
+      required:
+      - active
+      - current_run_rate_cents_per_hour
+      - request_id
+      properties:
+        active:
+          type: array
+          items:
+            $ref: '#/components/schemas/BillingActiveItem'
+          description: Every API-billed machine currently metering (running OR stopped). Empty for test-mode keys.
+        current_run_rate_cents_per_hour:
+          type: integer
+          description: Summed instantaneous burn rate across the active list — total cents/hour right now.
+        request_id:
+          type: string
+    UpdateMachineRequest:
+      type: object
+      required:
+      - ttl_minutes
+      additionalProperties: false
+      properties:
+        ttl_minutes:
+          type: integer
+          minimum: 0
+          maximum: 10080
+          description: 0 clears auto-destroy; otherwise the value must be between 5 and 10080.
+          oneOf:
+          - const: 0
+          - minimum: 5
+            maximum: 10080
+    UpdateMachineResponse:
+      type: object
+      required:
+      - machine_id
+      - ttl_minutes
+      - auto_destroy_at
       - request_id
       properties:
         machine_id:
           type: string
-        status:
+        ttl_minutes:
+          type:
+          - integer
+          - 'null'
+        auto_destroy_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        request_id:
           type: string
-        message:
-          type: string
+    ProvisionResponse:
+      type: object
+      required:
+      - machine
+      - connection
+      - request_id
+      properties:
+        machine:
+          $ref: '#/components/schemas/MachineRecord'
+        connection:
+          $ref: '#/components/schemas/ConnectionDetailsRedacted'
         request_id:
           type: string
     ConnectionDetailsRedacted:
@@ -1896,39 +1934,6 @@ components:
         has_vnc_password:
           type: boolean
           default: false
-    GetMachineResponse:
-      type: object
-      required:
-      - machine
-      - request_id
-      properties:
-        machine:
-          $ref: '#/components/schemas/MachineRecord'
-        request_id:
-          type: string
-    SnapshotResponse:
-      type: object
-      required:
-      - machine_id
-      - snapshot_id
-      - name
-      - created_at
-      - credits_charged
-      - request_id
-      properties:
-        machine_id:
-          type: string
-        snapshot_id:
-          type: string
-        name:
-          type: string
-        created_at:
-          type: string
-          format: date-time
-        credits_charged:
-          type: integer
-        request_id:
-          type: string
     ActionRequest:
       type: object
       required:
@@ -1999,11 +2004,14 @@ components:
           minimum: 1000
           maximum: 120000
   headers:
-    CreditsCharged:
-      description: Credits charged by this response (zero for sandbox keys and stored replays).
+    CoastyRequestId:
+      description: Coasty correlation identifier for this request.
       schema:
-        type: integer
-        minimum: 0
+        type: string
+    TestMode:
+      description: true when the request executed against the sandbox namespace.
+      schema:
+        type: boolean
     RetryAfter:
       description: Seconds to wait before retrying. Present on retryable back-pressure and transient failures.
       schema:
@@ -2016,18 +2024,6 @@ components:
         enum:
         - processing
         - completed
-    CoastyRequestId:
-      description: Coasty correlation identifier for this request.
-      schema:
-        type: string
-    IdempotentReplay:
-      description: true when this is a stored response replay rather than a new execution.
-      schema:
-        type: boolean
-    TestMode:
-      description: true when the request executed against the sandbox namespace.
-      schema:
-        type: boolean
     KeyKind:
       description: Whether the authenticated key is live or test.
       schema:
@@ -2036,14 +2032,23 @@ components:
         - live
         - test
         - legacy
+    CreditsCharged:
+      description: Credits charged by this response (zero for sandbox keys and stored replays).
+      schema:
+        type: integer
+        minimum: 0
     CreditsRefunded:
       description: Credits durably returned to the wallet after a failed billed operation.
       schema:
         type: integer
         minimum: 1
+    IdempotentReplay:
+      description: true when this is a stored response replay rather than a new execution.
+      schema:
+        type: boolean
   responses:
-    RateLimited:
-      description: Rate or concurrency limit exceeded.
+    ServerError:
+      description: Unexpected server error. Retry with exponential backoff.
       headers:
         X-Coasty-Request-Id:
           $ref: '#/components/headers/CoastyRequestId'
@@ -2059,7 +2064,76 @@ components:
             $ref: '#/components/schemas/ApiError'
           example:
             error:
-              code: RATE_LIMIT_EXCEEDED
+              code: INTERNAL_ERROR
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    PaymentRequired:
+      description: Insufficient credits to perform the operation. Top up via /credits or upgrade subscription.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: INSUFFICIENT_CREDITS
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    UnprocessableEntity:
+      description: The JSON shape is valid but one or more values violate the endpoint contract.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: VALIDATION_ERROR
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    ServiceUnavailable:
+      description: A required service is temporarily unavailable.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: SERVICE_UNAVAILABLE
               message: An error occurred. See `code` for details.
               type: validation_error
               request_id: req_a1b2c3d4e5f6
@@ -2088,8 +2162,8 @@ components:
               request_id: req_a1b2c3d4e5f6
               retryable: false
               retry_with_same_idempotency_key: false
-    GatewayTimeout:
-      description: An upstream dependency timed out.
+    RateLimited:
+      description: Rate or concurrency limit exceeded.
       headers:
         X-Coasty-Request-Id:
           $ref: '#/components/headers/CoastyRequestId'
@@ -2105,7 +2179,30 @@ components:
             $ref: '#/components/schemas/ApiError'
           example:
             error:
-              code: UPSTREAM_TIMEOUT
+              code: RATE_LIMIT_EXCEEDED
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    BadGateway:
+      description: An upstream dependency returned an invalid response.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: UPSTREAM_ERROR
               message: An error occurred. See `code` for details.
               type: validation_error
               request_id: req_a1b2c3d4e5f6
@@ -2157,8 +2254,8 @@ components:
               request_id: req_a1b2c3d4e5f6
               retryable: false
               retry_with_same_idempotency_key: false
-    ServiceUnavailable:
-      description: A required service is temporarily unavailable.
+    Unauthorized:
+      description: 'Missing, invalid, or revoked API key. Pass `X-API-Key: sk-coasty-live-...` (or test).'
       headers:
         X-Coasty-Request-Id:
           $ref: '#/components/headers/CoastyRequestId'
@@ -2174,53 +2271,7 @@ components:
             $ref: '#/components/schemas/ApiError'
           example:
             error:
-              code: SERVICE_UNAVAILABLE
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    BadGateway:
-      description: An upstream dependency returned an invalid response.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: UPSTREAM_ERROR
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    Forbidden:
-      description: API key lacks the required scope or tier-feature is unavailable on the caller's plan.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: INSUFFICIENT_SCOPE
+              code: INVALID_API_KEY
               message: An error occurred. See `code` for details.
               type: validation_error
               request_id: req_a1b2c3d4e5f6
@@ -2249,8 +2300,8 @@ components:
               request_id: req_a1b2c3d4e5f6
               retryable: false
               retry_with_same_idempotency_key: false
-    UnprocessableEntity:
-      description: The JSON shape is valid but one or more values violate the endpoint contract.
+    Forbidden:
+      description: API key lacks the required scope or tier-feature is unavailable on the caller's plan.
       headers:
         X-Coasty-Request-Id:
           $ref: '#/components/headers/CoastyRequestId'
@@ -2266,14 +2317,14 @@ components:
             $ref: '#/components/schemas/ApiError'
           example:
             error:
-              code: VALIDATION_ERROR
+              code: INSUFFICIENT_SCOPE
               message: An error occurred. See `code` for details.
               type: validation_error
               request_id: req_a1b2c3d4e5f6
               retryable: false
               retry_with_same_idempotency_key: false
-    Unauthorized:
-      description: 'Missing, invalid, or revoked API key. Pass `X-API-Key: sk-coasty-live-...` (or test).'
+    GatewayTimeout:
+      description: An upstream dependency timed out.
       headers:
         X-Coasty-Request-Id:
           $ref: '#/components/headers/CoastyRequestId'
@@ -2289,53 +2340,7 @@ components:
             $ref: '#/components/schemas/ApiError'
           example:
             error:
-              code: INVALID_API_KEY
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    ServerError:
-      description: Unexpected server error. Retry with exponential backoff.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: INTERNAL_ERROR
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    PaymentRequired:
-      description: Insufficient credits to perform the operation. Top up via /credits or upgrade subscription.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: INSUFFICIENT_CREDITS
+              code: UPSTREAM_TIMEOUT
               message: An error occurred. See `code` for details.
               type: validation_error
               request_id: req_a1b2c3d4e5f6

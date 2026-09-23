@@ -1,9 +1,14 @@
-openapi: 3.1.0
+openapi: 3.2.0
 info:
-  title: Coasty Public keys workflows API
+  title: Coasty Public Workflows API
   version: 1.0.0
   summary: Computer Use Agents, scheduled automation, and managed VMs.
-  description: "# Coasty Public API\n\nCoasty is a Computer Use Agent (CUA) platform: predict actions from screenshots,\nprovision managed VMs, and run scheduled automation against them.\n\n## Authentication\n\nAll endpoints (except `/v1/triggers/webhook/{webhook_id}` and health checks) require an API key.\nPass it as either:\n\n- `X-API-Key: sk-coasty-live-...` (or `sk-coasty-test-...` for sandbox)\n- `Authorization: Bearer sk-coasty-live-...`\n\nThe external webhook endpoint does not use an API key, but it is authenticated:\nsend the HMAC-SHA256 `Coasty-Signature` credential documented on that operation.\n\nTest-mode keys (`sk-coasty-test-*`) hit the same validation paths as live keys but\nreturn mock VMs / mock action results and never bill credits — ideal for CI.\n\n## Pricing & budgeting\n\nPer-call rates (subject to change — see `lib/pricing/tiers.ts METERED_RATES`):\n\n| Endpoint | Credits |\n|---|---|\n| `POST /v1/predict` | ~5 |\n| `POST /v1/sessions` | 10 |\n| `POST /v1/sessions/{id}/predict` | ~4 |\n| `POST /v1/ground` | ~3 |\n| `POST /v1/parse` | 0 (free) |\n\nLong-running CUA jobs orchestrated through the dashboard (not this API) bill at\n10 credits/minute with a 20-credit minimum. Subscription tiers (`free | starter |\nprofessional | enterprise`) gate feature availability (e.g. custom system prompts),\nschedule counts, and the maximum trajectory length.\n\n## Errors\n\nEvery error response uses the same envelope:\n\n```json\n{\n  \"error\": {\n    \"code\": \"INSUFFICIENT_CREDITS\",\n    \"message\": \"Need 5, have 2.\",\n    \"type\": \"billing_error\",\n    \"request_id\": \"req_a1b2c3d4e5f6\",\n    \"retryable\": false,\n    \"retry_with_same_idempotency_key\": false\n  }\n}\n```\n\nInclude the `request_id` in support requests.\n\n## Idempotency\n\nOperations marked `x-idempotency: reserve-and-replay` accept `Idempotency-Key:\n<≤128 chars of [A-Za-z0-9_-:]>`. Replays\nof the same key + identical body return the original response (with\n`X-Coasty-Idempotent-Replay: true`) for 24 h. Reusing the key with a different body\nis a 422 `IDEMPOTENCY_KEY_REUSED`.\nOperations marked `x-idempotency: webhook-payload-dedup` instead deduplicate the\nsame webhook id + identical raw body for 60 seconds; they do not accept an\nIdempotency-Key.\n\n## Clients & MCP\n\nUse the HTTP API directly from any language. Official TypeScript and Python SDKs\nare not currently published; generate a client from this OpenAPI document if needed.\n- MCP server: `npx -y @coasty/mcp` (see `x-mcp-server`)\n\n## Reference\n\nComplete (machine-readable) spec is hosted at `/.well-known/openapi.json` and\n`/openapi.json` (Stripe / Vercel conventions)."
+  description: '# Coasty Public API
+
+
+    Coasty is a Computer Use Agent (CUA) platform: predict actions from screenshots,
+
+    provision managed VMs, and run scheduled automation against them.'
   contact:
     name: Coasty Developer Support
     url: https://coasty.ai/support
@@ -21,13 +26,13 @@ security:
 - apiKey: []
 - bearerAuth: []
 tags:
-- name: workflows
+- name: Workflows
   description: Versioned, branching multi-step automations (DSL) and their runs.
 paths:
   /v1/workflows:
     post:
       tags:
-      - workflows
+      - Workflows
       operationId: createWorkflow
       summary: Create a workflow
       description: 'Scope: `workflows:write`. Free (definition only). Creates a versioned workflow from a DSL `definition`.'
@@ -95,7 +100,7 @@ paths:
       x-idempotency: reserve-and-replay
     get:
       tags:
-      - workflows
+      - Workflows
       operationId: listWorkflows
       summary: List workflows
       description: 'Scope: `workflows:read`. Free. `limit` 1-200 (default 20).'
@@ -161,7 +166,7 @@ paths:
   /v1/workflows/runs:
     post:
       tags:
-      - workflows
+      - Workflows
       operationId: startAdhocWorkflowRun
       summary: Start an ad-hoc workflow run
       description: 'Scope: `workflows:write`. Runs an inline `definition` without saving it. Each `task` step bills at the /v1/predict rate under the optional `budget_cents` cap; other step types are free. Test keys never bill. `webhook_secret` is returned ONCE.'
@@ -231,7 +236,7 @@ paths:
       x-idempotency: reserve-and-replay
     get:
       tags:
-      - workflows
+      - Workflows
       operationId: listWorkflowRuns
       summary: List workflow runs
       description: 'Scope: `workflows:read`. Free. Optional `workflow_id` filter and `limit` (1-200, default 20).'
@@ -305,7 +310,7 @@ paths:
     - $ref: '#/components/parameters/RunId'
     get:
       tags:
-      - workflows
+      - Workflows
       operationId: getWorkflowRun
       summary: Get a workflow run
       description: 'Scope: `workflows:read`. Free.'
@@ -364,10 +369,10 @@ paths:
     - $ref: '#/components/parameters/RunId'
     get:
       tags:
-      - workflows
+      - Workflows
       operationId: streamWorkflowRunEvents
       summary: Stream workflow run events (SSE)
-      description: 'Scope: `workflows:read`. Free. Durable SSE stream; resume with `Last-Event-ID` or `?after=<seq>`. The edge may rotate a connection after 300 seconds, so reconnect with the last sequence until the terminal event arrives.'
+      description: 'Scope: `workflows:read`. Free. Durable SSE stream; resume with `Last-Event-ID` or `?after=`. The edge may rotate a connection after 300 seconds, so reconnect with the last sequence until the terminal event arrives.'
       security:
       - apiKey: []
       - bearerAuth: []
@@ -432,7 +437,7 @@ paths:
     - $ref: '#/components/parameters/RunId'
     post:
       tags:
-      - workflows
+      - Workflows
       operationId: cancelWorkflowRun
       summary: Cancel a workflow run
       description: 'Scope: `workflows:write`. Free.'
@@ -491,7 +496,7 @@ paths:
     - $ref: '#/components/parameters/RunId'
     post:
       tags:
-      - workflows
+      - Workflows
       operationId: resumeWorkflowRun
       summary: Approve or reject a paused workflow run
       description: 'Scope: `workflows:write`. Free. Approves (continues) or rejects (fails) a run paused on a `human_approval` step.'
@@ -556,7 +561,7 @@ paths:
     - $ref: '#/components/parameters/WorkflowId'
     get:
       tags:
-      - workflows
+      - Workflows
       operationId: getWorkflow
       summary: Get a workflow
       description: 'Scope: `workflows:read`. Free.'
@@ -612,7 +617,7 @@ paths:
       x-idempotency: none
     put:
       tags:
-      - workflows
+      - Workflows
       operationId: updateWorkflow
       summary: Update a workflow
       description: 'Scope: `workflows:write`. Free. Bumps the workflow `version`.'
@@ -674,7 +679,7 @@ paths:
       x-idempotency: none
     delete:
       tags:
-      - workflows
+      - Workflows
       operationId: deleteWorkflow
       summary: Archive a workflow
       description: 'Scope: `workflows:write`. Free. Archives the workflow.'
@@ -733,7 +738,7 @@ paths:
     - $ref: '#/components/parameters/WorkflowId'
     post:
       tags:
-      - workflows
+      - Workflows
       operationId: startWorkflowRun
       summary: Start a run of a saved workflow
       description: 'Scope: `workflows:write`. Runs the saved workflow. Each `task` step bills at the /v1/predict rate under the optional `budget_cents` cap; other steps are free. Test keys never bill. `webhook_secret` is returned ONCE. BYOK: opt in via the body `llm` block or the X-LLM-* headers to run every task step''s LLM calls on YOUR provider key (no silent fallback).'
@@ -806,11 +811,14 @@ paths:
       x-idempotency: reserve-and-replay
 components:
   headers:
-    CreditsCharged:
-      description: Credits charged by this response (zero for sandbox keys and stored replays).
+    CoastyRequestId:
+      description: Coasty correlation identifier for this request.
       schema:
-        type: integer
-        minimum: 0
+        type: string
+    TestMode:
+      description: true when the request executed against the sandbox namespace.
+      schema:
+        type: boolean
     RetryAfter:
       description: Seconds to wait before retrying. Present on retryable back-pressure and transient failures.
       schema:
@@ -823,18 +831,6 @@ components:
         enum:
         - processing
         - completed
-    CoastyRequestId:
-      description: Coasty correlation identifier for this request.
-      schema:
-        type: string
-    IdempotentReplay:
-      description: true when this is a stored response replay rather than a new execution.
-      schema:
-        type: boolean
-    TestMode:
-      description: true when the request executed against the sandbox namespace.
-      schema:
-        type: boolean
     KeyKind:
       description: Whether the authenticated key is live or test.
       schema:
@@ -843,312 +839,81 @@ components:
         - live
         - test
         - legacy
+    CreditsCharged:
+      description: Credits charged by this response (zero for sandbox keys and stored replays).
+      schema:
+        type: integer
+        minimum: 0
     CreditsRefunded:
       description: Credits durably returned to the wallet after a failed billed operation.
       schema:
         type: integer
         minimum: 1
-  responses:
-    RateLimited:
-      description: Rate or concurrency limit exceeded.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: RATE_LIMIT_EXCEEDED
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    BadRequest:
-      description: Invalid request body or parameters.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: VALIDATION_ERROR
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    GatewayTimeout:
-      description: An upstream dependency timed out.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: UPSTREAM_TIMEOUT
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    PayloadTooLarge:
-      description: The request body exceeds the endpoint limit.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: PAYLOAD_TOO_LARGE
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    ServiceUnavailable:
-      description: A required service is temporarily unavailable.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: SERVICE_UNAVAILABLE
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    NotFound:
-      description: Resource not found in this key's namespace.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: NOT_FOUND
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    BadGateway:
-      description: An upstream dependency returned an invalid response.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: UPSTREAM_ERROR
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    Forbidden:
-      description: API key lacks the required scope or tier-feature is unavailable on the caller's plan.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: INSUFFICIENT_SCOPE
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    UnprocessableEntity:
-      description: The JSON shape is valid but one or more values violate the endpoint contract.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: VALIDATION_ERROR
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    Conflict:
-      description: The resource state conflicts with this operation.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: CONFLICT
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    Unauthorized:
-      description: 'Missing, invalid, or revoked API key. Pass `X-API-Key: sk-coasty-live-...` (or test).'
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: INVALID_API_KEY
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    PaymentRequired:
-      description: Insufficient credits to perform the operation. Top up via /credits or upgrade subscription.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: INSUFFICIENT_CREDITS
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    ServerError:
-      description: Unexpected server error. Retry with exponential backoff.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: INTERNAL_ERROR
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
+    IdempotentReplay:
+      description: true when this is a stored response replay rather than a new execution.
+      schema:
+        type: boolean
   schemas:
+    LlmConfig:
+      type: object
+      additionalProperties: false
+      description: 'Opt-in BYOK model selection. provider ''managed'' (or omitting llm) keeps the platform default. There is deliberately no api_key field (422 if attempted): keys ride the X-LLM-Api-Key header or the encrypted /v1/llm/keys store only. Once BYOK is requested there is NO silent fallback to Coasty''s platform LLM keys.'
+      properties:
+        provider:
+          type: string
+          enum:
+          - managed
+          - anthropic
+          - openai
+          default: managed
+          description: Whose LLM account runs the harness. Anything else is 422 LLM_PROVIDER_UNSUPPORTED.
+        model:
+          type:
+          - string
+          - 'null'
+          minLength: 1
+          maxLength: 512
+          description: 'Main worker model. Defaults: claude-sonnet-4-6 (anthropic), gpt-4o (openai). Any model string your account can access; must be vision-capable.'
+        grounding_model:
+          type:
+          - string
+          - 'null'
+          minLength: 1
+          maxLength: 512
+          description: Override for pixel-coordinate grounding. Defaults to model. Grounding quality is tuned on the platform model; expect best results with the defaults.
+        compaction_model:
+          type:
+          - string
+          - 'null'
+          minLength: 1
+          maxLength: 512
+          description: Override for trajectory compaction. Defaults to model. A cheaper model here is the classic cost tune.
+        code_agent_model:
+          type:
+          - string
+          - 'null'
+          minLength: 1
+          maxLength: 512
+          description: Override for the code agent. Defaults to model.
+    ListWorkflowRunsResponse:
+      type: object
+      required:
+      - object
+      - data
+      properties:
+        object:
+          type: string
+          enum:
+          - list
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowRunResponse'
+        has_more:
+          type: boolean
+          default: false
+        request_id:
+          type: string
     WorkflowDeleteResponse:
       type: object
       required:
@@ -1168,6 +933,212 @@ components:
           - true
         request_id:
           type: string
+    WorkflowUpdateRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        definition:
+          type: object
+          additionalProperties: true
+        inputs_schema:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+        description:
+          type:
+          - string
+          - 'null'
+          maxLength: 2000
+        status:
+          type:
+          - string
+          - 'null'
+          enum:
+          - active
+          - archived
+          - null
+        metadata:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+    StartWorkflowRunRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        inputs:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+          description: Bound input values.
+        machine_id:
+          type:
+          - string
+          - 'null'
+          maxLength: 128
+          description: Default machine for task steps.
+        budget_cents:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 10000000
+          description: Hard spend cap across all task steps; 0 or null = unlimited.
+        max_iterations:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 100000
+        deadline_seconds:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 86400
+        webhook_url:
+          type:
+          - string
+          - 'null'
+          maxLength: 2048
+        metadata:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+        definition:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+          description: Inline DSL for an ad-hoc run (POST /v1/workflows/runs). Omit when running a saved workflow.
+        inputs_schema:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+          description: Ad-hoc runs only.
+        llm:
+          $ref: '#/components/schemas/LlmConfig'
+    ApiError:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          required:
+          - code
+          - message
+          - type
+          - retryable
+          - retry_with_same_idempotency_key
+          - request_id
+          properties:
+            code:
+              type: string
+              description: Stable machine-readable error code (e.g. INVALID_API_KEY, INSUFFICIENT_CREDITS).
+              examples:
+              - INVALID_API_KEY
+            message:
+              type: string
+              description: Human-readable explanation. May include suggestions or examples.
+            type:
+              type: string
+              enum:
+              - auth_error
+              - validation_error
+              - rate_limit_error
+              - billing_error
+              - not_found_error
+              - state_error
+              - server_error
+              - client_error
+            request_id:
+              type: string
+              description: Server-assigned correlation ID. Include in support requests.
+              examples:
+              - req_a1b2c3d4e5f6
+            suggestion:
+              type: string
+              description: A concrete next step, auto-filled per code. LLM agents can act on it to self-recover.
+            retryable:
+              type: boolean
+              description: 'true when retrying the same call may succeed (transient server failures + back-pressure: INTERNAL_ERROR, DB_UNAVAILABLE, SERVICE_UNAVAILABLE, UPSTREAM_*, PREDICTION_FAILED, *_FAILED, RATE_LIMITED, TOO_MANY_RUNS, IDEMPOTENCY_IN_FLIGHT, ...). false for deterministic client errors. A CUA BILLING_UNAVAILABLE caused by refund uncertainty is false unless the server confirmed a shared recovery checkpoint. Present on EVERY error envelope, including gateway/5xx/timeout paths.'
+            retry_with_same_idempotency_key:
+              type: boolean
+              description: 'true only when the concrete response permits replay, the original operation is one of the exact 18 reserve-and-replay operations, and that original request already carried the key. Reuse that SAME key and identical body. A retryable error alone does not make an operation idempotent, and a key cannot be added retroactively. For CUA refund uncertainty this is true only after an exact shared checkpoint was confirmed; unkeyed or uncheckpointed responses are false and must not be retried automatically. A confirmed refunded failure sets this false even when retryable remains true: use a new key, because the old debit is compensated and wallet-guarded by IDEMPOTENCY_ALREADY_REFUNDED. false for deterministic errors.'
+            retry_after:
+              type:
+              - integer
+              - 'null'
+              description: Seconds to wait before retrying (accompanies retryable:true back-pressure codes; mirrors the Retry-After header).
+            examples:
+              type: object
+              additionalProperties: true
+              description: 'Machine-readable limits for self-correction. On PAYLOAD_TOO_LARGE / INVALID_SCREENSHOT: { max_base64_bytes: 10485760, max_mb: 10, min_base64_chars: 100, formats: ["png","jpeg"] }.'
+    ListWorkflowsResponse:
+      type: object
+      required:
+      - object
+      - data
+      properties:
+        object:
+          type: string
+          enum:
+          - list
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowResponse'
+        has_more:
+          type: boolean
+          default: false
+        request_id:
+          type: string
+    WorkflowCreateRequest:
+      type: object
+      required:
+      - name
+      - slug
+      - definition
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 64
+          pattern: ^[a-z0-9][a-z0-9_-]{0,62}$
+          description: Stable handle.
+        definition:
+          type: object
+          additionalProperties: true
+          description: Workflow DSL, validated server-side.
+        inputs_schema:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+        description:
+          type:
+          - string
+          - 'null'
+          maxLength: 2000
+        metadata:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
     WorkflowResponse:
       type: object
       required:
@@ -1227,63 +1198,6 @@ components:
           type:
           - string
           - 'null'
-    ApiError:
-      type: object
-      required:
-      - error
-      properties:
-        error:
-          type: object
-          required:
-          - code
-          - message
-          - type
-          - retryable
-          - retry_with_same_idempotency_key
-          - request_id
-          properties:
-            code:
-              type: string
-              description: Stable machine-readable error code (e.g. INVALID_API_KEY, INSUFFICIENT_CREDITS).
-              examples:
-              - INVALID_API_KEY
-            message:
-              type: string
-              description: Human-readable explanation. May include suggestions or examples.
-            type:
-              type: string
-              enum:
-              - auth_error
-              - validation_error
-              - rate_limit_error
-              - billing_error
-              - not_found_error
-              - state_error
-              - server_error
-              - client_error
-            request_id:
-              type: string
-              description: Server-assigned correlation ID. Include in support requests.
-              examples:
-              - req_a1b2c3d4e5f6
-            suggestion:
-              type: string
-              description: A concrete next step, auto-filled per code. LLM agents can act on it to self-recover.
-            retryable:
-              type: boolean
-              description: 'true when retrying the same call may succeed (transient server failures + back-pressure: INTERNAL_ERROR, DB_UNAVAILABLE, SERVICE_UNAVAILABLE, UPSTREAM_*, PREDICTION_FAILED, *_FAILED, RATE_LIMITED, TOO_MANY_RUNS, IDEMPOTENCY_IN_FLIGHT, ...). false for deterministic client errors. A CUA BILLING_UNAVAILABLE caused by refund uncertainty is false unless the server confirmed a shared recovery checkpoint. Present on EVERY error envelope, including gateway/5xx/timeout paths.'
-            retry_with_same_idempotency_key:
-              type: boolean
-              description: 'true only when the concrete response permits replay, the original operation is one of the exact 18 reserve-and-replay operations, and that original request already carried the key. Reuse that SAME key and identical body. A retryable error alone does not make an operation idempotent, and a key cannot be added retroactively. For CUA refund uncertainty this is true only after an exact shared checkpoint was confirmed; unkeyed or uncheckpointed responses are false and must not be retried automatically. A confirmed refunded failure sets this false even when retryable remains true: use a new key, because the old debit is compensated and wallet-guarded by IDEMPOTENCY_ALREADY_REFUNDED. false for deterministic errors.'
-            retry_after:
-              type:
-              - integer
-              - 'null'
-              description: Seconds to wait before retrying (accompanies retryable:true back-pressure codes; mirrors the Retry-After header).
-            examples:
-              type: object
-              additionalProperties: true
-              description: 'Machine-readable limits for self-correction. On PAYLOAD_TOO_LARGE / INVALID_SCREENSHOT: { max_base64_bytes: 10485760, max_mb: 10, min_base64_chars: 100, formats: ["png","jpeg"] }.'
     ResumeWorkflowRunRequest:
       type: object
       additionalProperties: false
@@ -1297,78 +1211,6 @@ components:
           - string
           - 'null'
           maxLength: 2000
-    ListWorkflowsResponse:
-      type: object
-      required:
-      - object
-      - data
-      properties:
-        object:
-          type: string
-          enum:
-          - list
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/WorkflowResponse'
-        has_more:
-          type: boolean
-          default: false
-        request_id:
-          type: string
-    ListWorkflowRunsResponse:
-      type: object
-      required:
-      - object
-      - data
-      properties:
-        object:
-          type: string
-          enum:
-          - list
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/WorkflowRunResponse'
-        has_more:
-          type: boolean
-          default: false
-        request_id:
-          type: string
-    WorkflowUpdateRequest:
-      type: object
-      additionalProperties: false
-      properties:
-        name:
-          type: string
-          minLength: 1
-          maxLength: 128
-        definition:
-          type: object
-          additionalProperties: true
-        inputs_schema:
-          type:
-          - object
-          - 'null'
-          additionalProperties: true
-        description:
-          type:
-          - string
-          - 'null'
-          maxLength: 2000
-        status:
-          type:
-          - string
-          - 'null'
-          enum:
-          - active
-          - archived
-          - null
-        metadata:
-          type:
-          - object
-          - 'null'
-          additionalProperties: true
     WorkflowRunResponse:
       type: object
       required:
@@ -1463,156 +1305,7 @@ components:
           type:
           - string
           - 'null'
-    LlmConfig:
-      type: object
-      additionalProperties: false
-      description: 'Opt-in BYOK model selection. provider ''managed'' (or omitting llm) keeps the platform default. There is deliberately no api_key field (422 if attempted): keys ride the X-LLM-Api-Key header or the encrypted /v1/llm/keys store only. Once BYOK is requested there is NO silent fallback to Coasty''s platform LLM keys.'
-      properties:
-        provider:
-          type: string
-          enum:
-          - managed
-          - anthropic
-          - openai
-          default: managed
-          description: Whose LLM account runs the harness. Anything else is 422 LLM_PROVIDER_UNSUPPORTED.
-        model:
-          type:
-          - string
-          - 'null'
-          minLength: 1
-          maxLength: 512
-          description: 'Main worker model. Defaults: claude-sonnet-4-6 (anthropic), gpt-4o (openai). Any model string your account can access; must be vision-capable.'
-        grounding_model:
-          type:
-          - string
-          - 'null'
-          minLength: 1
-          maxLength: 512
-          description: Override for pixel-coordinate grounding. Defaults to model. Grounding quality is tuned on the platform model; expect best results with the defaults.
-        compaction_model:
-          type:
-          - string
-          - 'null'
-          minLength: 1
-          maxLength: 512
-          description: Override for trajectory compaction. Defaults to model. A cheaper model here is the classic cost tune.
-        code_agent_model:
-          type:
-          - string
-          - 'null'
-          minLength: 1
-          maxLength: 512
-          description: Override for the code agent. Defaults to model.
-    StartWorkflowRunRequest:
-      type: object
-      additionalProperties: false
-      properties:
-        inputs:
-          type:
-          - object
-          - 'null'
-          additionalProperties: true
-          description: Bound input values.
-        machine_id:
-          type:
-          - string
-          - 'null'
-          maxLength: 128
-          description: Default machine for task steps.
-        budget_cents:
-          type:
-          - integer
-          - 'null'
-          minimum: 0
-          maximum: 10000000
-          description: Hard spend cap across all task steps; 0 or null = unlimited.
-        max_iterations:
-          type:
-          - integer
-          - 'null'
-          minimum: 1
-          maximum: 100000
-        deadline_seconds:
-          type:
-          - integer
-          - 'null'
-          minimum: 1
-          maximum: 86400
-        webhook_url:
-          type:
-          - string
-          - 'null'
-          maxLength: 2048
-        metadata:
-          type:
-          - object
-          - 'null'
-          additionalProperties: true
-        definition:
-          type:
-          - object
-          - 'null'
-          additionalProperties: true
-          description: Inline DSL for an ad-hoc run (POST /v1/workflows/runs). Omit when running a saved workflow.
-        inputs_schema:
-          type:
-          - object
-          - 'null'
-          additionalProperties: true
-          description: Ad-hoc runs only.
-        llm:
-          $ref: '#/components/schemas/LlmConfig'
-    WorkflowCreateRequest:
-      type: object
-      required:
-      - name
-      - slug
-      - definition
-      additionalProperties: false
-      properties:
-        name:
-          type: string
-          minLength: 1
-          maxLength: 128
-        slug:
-          type: string
-          minLength: 1
-          maxLength: 64
-          pattern: ^[a-z0-9][a-z0-9_-]{0,62}$
-          description: Stable handle.
-        definition:
-          type: object
-          additionalProperties: true
-          description: Workflow DSL, validated server-side.
-        inputs_schema:
-          type:
-          - object
-          - 'null'
-          additionalProperties: true
-        description:
-          type:
-          - string
-          - 'null'
-          maxLength: 2000
-        metadata:
-          type:
-          - object
-          - 'null'
-          additionalProperties: true
   parameters:
-    IdempotencyKey:
-      name: Idempotency-Key
-      in: header
-      required: false
-      description: 'Optional client-supplied key (≤128 chars, [A-Za-z0-9_-:]) for safe retries. ''Same request'' = a SHA-256 of the canonical (sorted-key) JSON body (session_id is folded in for /sessions/{id}/predict). Replays the original response for 24 h when the body hash matches (X-Coasty-Idempotent-Replay: true and X-Credits-Charged: 0). Inference replays also set body usage.credits_charged=0 and usage.billed=false; machine-snapshot bodies retain the original gross charge for auditability. A retry while the original is still running waits up to ~25 s then returns the result, otherwise 409 IDEMPOTENCY_IN_FLIGHT (retry with the SAME key). Returns 422 IDEMPOTENCY_KEY_REUSED if the body differs. Collect a lost result via GET /v1/idempotency/{key}.'
-      schema:
-        type: string
-        maxLength: 128
-        pattern: ^[A-Za-z0-9_\-:]+$
-      examples:
-        uuid:
-          value: 550e8400-e29b-41d4-a716-446655440000
     XLLMProvider:
       name: X-LLM-Provider
       in: header
@@ -1632,6 +1325,14 @@ components:
         type: string
         minLength: 1
         maxLength: 512
+    WorkflowId:
+      name: workflow_id
+      in: path
+      required: true
+      description: Workflow UUID.
+      schema:
+        type: string
+        format: uuid
     RunId:
       name: run_id
       in: path
@@ -1640,6 +1341,26 @@ components:
       schema:
         type: string
         format: uuid
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: 'Optional client-supplied key (≤128 chars, [A-Za-z0-9_-:]) for safe retries. ''Same request'' = a SHA-256 of the canonical (sorted-key) JSON body (session_id is folded in for /sessions/{id}/predict). Replays the original response for 24 h when the body hash matches (X-Coasty-Idempotent-Replay: true and X-Credits-Charged: 0). Inference replays also set body usage.credits_charged=0 and usage.billed=false; machine-snapshot bodies retain the original gross charge for auditability. A retry while the original is still running waits up to ~25 s then returns the result, otherwise 409 IDEMPOTENCY_IN_FLIGHT (retry with the SAME key). Returns 422 IDEMPOTENCY_KEY_REUSED if the body differs. Collect a lost result via GET /v1/idempotency/{key}.'
+      schema:
+        type: string
+        maxLength: 128
+        pattern: ^[A-Za-z0-9_\-:]+$
+      examples:
+        uuid:
+          value: 550e8400-e29b-41d4-a716-446655440000
+    LastEventId:
+      name: Last-Event-ID
+      in: header
+      required: false
+      description: Last processed SSE sequence number. Reconnect with this value to resume without gaps.
+      schema:
+        type: integer
+        minimum: 0
     XLLMApiKey:
       name: X-LLM-Api-Key
       in: header
@@ -1649,22 +1370,306 @@ components:
         type: string
         minLength: 16
         maxLength: 512
-    LastEventId:
-      name: Last-Event-ID
-      in: header
-      required: false
-      description: Last processed SSE sequence number. Reconnect with this value to resume without gaps.
-      schema:
-        type: integer
-        minimum: 0
-    WorkflowId:
-      name: workflow_id
-      in: path
-      required: true
-      description: Workflow UUID.
-      schema:
-        type: string
-        format: uuid
+  responses:
+    ServerError:
+      description: Unexpected server error. Retry with exponential backoff.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: INTERNAL_ERROR
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    PaymentRequired:
+      description: Insufficient credits to perform the operation. Top up via /credits or upgrade subscription.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: INSUFFICIENT_CREDITS
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    UnprocessableEntity:
+      description: The JSON shape is valid but one or more values violate the endpoint contract.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: VALIDATION_ERROR
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    ServiceUnavailable:
+      description: A required service is temporarily unavailable.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: SERVICE_UNAVAILABLE
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    BadRequest:
+      description: Invalid request body or parameters.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: VALIDATION_ERROR
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    RateLimited:
+      description: Rate or concurrency limit exceeded.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: RATE_LIMIT_EXCEEDED
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    BadGateway:
+      description: An upstream dependency returned an invalid response.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: UPSTREAM_ERROR
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    PayloadTooLarge:
+      description: The request body exceeds the endpoint limit.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: PAYLOAD_TOO_LARGE
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    NotFound:
+      description: Resource not found in this key's namespace.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: NOT_FOUND
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    Unauthorized:
+      description: 'Missing, invalid, or revoked API key. Pass `X-API-Key: sk-coasty-live-...` (or test).'
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: INVALID_API_KEY
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    Conflict:
+      description: The resource state conflicts with this operation.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: CONFLICT
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    Forbidden:
+      description: API key lacks the required scope or tier-feature is unavailable on the caller's plan.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: INSUFFICIENT_SCOPE
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    GatewayTimeout:
+      description: An upstream dependency timed out.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: UPSTREAM_TIMEOUT
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
   securitySchemes:
     apiKey:
       type: apiKey
