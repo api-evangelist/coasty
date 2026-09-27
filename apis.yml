@@ -61,10 +61,9 @@ tags:
 - Developer Tools
 apis:
 - aid: coasty:coasty-keys-api
-  name: Coasty keys API
+  name: Coasty Keys API
   description: API key management and usage reporting.
   humanURL: https://coasty.ai/docs
-  baseURL: https://coasty.ai
   tags:
   - Keys
   tags_raw:
@@ -79,10 +78,9 @@ apis:
   - type: GettingStarted
     url: https://coasty.ai/guide?tab=api
 - aid: coasty:coasty-machines-api
-  name: Coasty machines API
+  name: Coasty Machines API
   description: Provision and control managed VMs.
   humanURL: https://coasty.ai/docs
-  baseURL: https://coasty.ai
   tags:
   - Machines
   tags_raw:
@@ -97,10 +95,9 @@ apis:
   - type: GettingStarted
     url: https://coasty.ai/guide?tab=api
 - aid: coasty:coasty-predict-api
-  name: Coasty predict API
+  name: Coasty Predict API
   description: Stateless CUA action prediction and grounding.
   humanURL: https://coasty.ai/docs
-  baseURL: https://coasty.ai
   tags:
   - Predict
   tags_raw:
@@ -115,10 +112,9 @@ apis:
   - type: GettingStarted
     url: https://coasty.ai/guide?tab=api
 - aid: coasty:coasty-runs-api
-  name: Coasty runs API
+  name: Coasty Runs API
   description: Autonomous task runs — the agent drives a task to completion on a machine.
   humanURL: https://coasty.ai/docs
-  baseURL: https://coasty.ai
   tags:
   - Runs
   tags_raw:
@@ -133,10 +129,9 @@ apis:
   - type: GettingStarted
     url: https://coasty.ai/guide?tab=api
 - aid: coasty:coasty-schedules-api
-  name: Coasty schedules API
+  name: Coasty Schedules API
   description: Cron and one-shot scheduled CUA jobs.
   humanURL: https://coasty.ai/docs
-  baseURL: https://coasty.ai
   tags:
   - Schedule
   tags_raw:
@@ -151,10 +146,9 @@ apis:
   - type: GettingStarted
     url: https://coasty.ai/guide?tab=api
 - aid: coasty:coasty-sessions-api
-  name: Coasty sessions API
+  name: Coasty Sessions API
   description: Stateful CUA sessions with persistent trajectory.
   humanURL: https://coasty.ai/docs
-  baseURL: https://coasty.ai
   tags:
   - Sessions
   tags_raw:
@@ -169,10 +163,9 @@ apis:
   - type: GettingStarted
     url: https://coasty.ai/guide?tab=api
 - aid: coasty:coasty-triggers-api
-  name: Coasty triggers API
+  name: Coasty Triggers API
   description: Webhook and chain triggers for schedules.
   humanURL: https://coasty.ai/docs
-  baseURL: https://coasty.ai
   tags:
   - Triggers
   tags_raw:
@@ -187,10 +180,9 @@ apis:
   - type: GettingStarted
     url: https://coasty.ai/guide?tab=api
 - aid: coasty:coasty-workflows-api
-  name: Coasty workflows API
+  name: Coasty Workflows API
   description: Versioned, branching multi-step automations (DSL) and their runs.
   humanURL: https://coasty.ai/docs
-  baseURL: https://coasty.ai
   tags:
   - Workflows
   tags_raw:
