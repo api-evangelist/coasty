@@ -1,0 +1,37 @@
+slug: coasty
+provider: Coasty
+generated_by: planning/capability-mapping/scripts/classify_capabilities.py
+model: claude-opus-5
+frame:
+- Software & Technology
+min_confidence: 0.7
+capability_model:
+  source: https://github.com/vincentmakes/turbo-ea-capabilities
+  license: CC-BY-4.0
+  attribution: Turbo EA Capabilities by Vincent Verdet — Turbo EA, https://github.com/vincentmakes/turbo-ea-capabilities,
+    CC BY 4.0
+  notice: NOTICE
+edge_count: 2
+edges:
+- tag: Keys
+  spec_file: coasty-keys-api-openapi.yml
+  capability_id: BC-4270.40
+  capability_id_l1: BC-4270
+  capability_name: Developer Identity & Credential Management
+  confidence: 0.8
+  evidence: POST /v1/keys  createApiKey  Create an API key; DELETE /v1/keys/{key_id}  revokeApiKey  Revoke
+    an API key
+  reason: Issuance, listing and revocation of API credentials (plus BYOK provider keys) for developers
+    consuming the public API — developer identity and credential management; usage summary hints at consumption
+    governance, giving minor sub-capability ambiguity.
+- tag: Machines
+  spec_file: coasty-machines-api-openapi.yml
+  capability_id: BC-600.50
+  capability_id_l1: BC-600
+  capability_name: IT Infrastructure Management
+  confidence: 0.72
+  evidence: POST /v1/machines  provisionMachine  Provision a new VM; POST /v1/machines/{machine_id}/start  startMachine  Start
+    a stopped machine
+  reason: The operations provision, start, stop, restart, snapshot and terminate virtual machines — compute
+    infrastructure lifecycle management, which is IT Infrastructure Management. It is not a tenant/environment
+    capability of a SaaS product line but raw VM estate control exposed as a service.

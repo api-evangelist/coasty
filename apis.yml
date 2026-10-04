@@ -197,6 +197,9 @@ apis:
   - type: GettingStarted
     url: https://coasty.ai/guide?tab=api
 common:
+- type: CapabilityMap
+  url: capabilities/coasty-capability-edges.yml
+  name: Coasty Business Capability Map
 - type: PostmanWorkspace
   url: https://www.postman.com/kinlaneapi/coasty/overview
 - type: VulnerabilityDisclosure
