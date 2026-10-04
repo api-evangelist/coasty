@@ -1251,9 +1251,52 @@ paths:
       x-feature-flag: PUBLIC_MACHINES_API_ENABLED
       x-idempotency: reserve-and-replay
 components:
+  headers:
+    RetryAfter:
+      description: Seconds to wait before retrying. Present on retryable back-pressure and transient failures.
+      schema:
+        type: integer
+        minimum: 0
+    CreditsCharged:
+      description: Credits charged by this response (zero for sandbox keys and stored replays).
+      schema:
+        type: integer
+        minimum: 0
+    IdempotentReplay:
+      description: true when this is a stored response replay rather than a new execution.
+      schema:
+        type: boolean
+    CoastyRequestId:
+      description: Coasty correlation identifier for this request.
+      schema:
+        type: string
+    IdempotencyStatus:
+      description: Lifecycle status of the canonical idempotent attempt when applicable.
+      schema:
+        type: string
+        enum:
+        - processing
+        - completed
+    CreditsRefunded:
+      description: Credits durably returned to the wallet after a failed billed operation.
+      schema:
+        type: integer
+        minimum: 1
+    KeyKind:
+      description: Whether the authenticated key is live or test.
+      schema:
+        type: string
+        enum:
+        - live
+        - test
+        - legacy
+    TestMode:
+      description: true when the request executed against the sandbox namespace.
+      schema:
+        type: boolean
   responses:
-    Conflict:
-      description: The resource state conflicts with this operation.
+    Forbidden:
+      description: API key lacks the required scope or tier-feature is unavailable on the caller's plan.
       headers:
         X-Coasty-Request-Id:
           $ref: '#/components/headers/CoastyRequestId'
@@ -1269,14 +1312,14 @@ components:
             $ref: '#/components/schemas/ApiError'
           example:
             error:
-              code: CONFLICT
+              code: INSUFFICIENT_SCOPE
               message: An error occurred. See `code` for details.
               type: validation_error
               request_id: req_a1b2c3d4e5f6
               retryable: false
               retry_with_same_idempotency_key: false
-    ServiceUnavailable:
-      description: A required service is temporarily unavailable.
+    BadGateway:
+      description: An upstream dependency returned an invalid response.
       headers:
         X-Coasty-Request-Id:
           $ref: '#/components/headers/CoastyRequestId'
@@ -1292,7 +1335,7 @@ components:
             $ref: '#/components/schemas/ApiError'
           example:
             error:
-              code: SERVICE_UNAVAILABLE
+              code: UPSTREAM_ERROR
               message: An error occurred. See `code` for details.
               type: validation_error
               request_id: req_a1b2c3d4e5f6
@@ -1321,8 +1364,100 @@ components:
               request_id: req_a1b2c3d4e5f6
               retryable: false
               retry_with_same_idempotency_key: false
-    BadRequest:
-      description: Invalid request body or parameters.
+    ServerError:
+      description: Unexpected server error. Retry with exponential backoff.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: INTERNAL_ERROR
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    ServiceUnavailable:
+      description: A required service is temporarily unavailable.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: SERVICE_UNAVAILABLE
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    Conflict:
+      description: The resource state conflicts with this operation.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: CONFLICT
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    GatewayTimeout:
+      description: An upstream dependency timed out.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: UPSTREAM_TIMEOUT
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    UnprocessableEntity:
+      description: The JSON shape is valid but one or more values violate the endpoint contract.
       headers:
         X-Coasty-Request-Id:
           $ref: '#/components/headers/CoastyRequestId'
@@ -1344,8 +1479,77 @@ components:
               request_id: req_a1b2c3d4e5f6
               retryable: false
               retry_with_same_idempotency_key: false
-    UnprocessableEntity:
-      description: The JSON shape is valid but one or more values violate the endpoint contract.
+    PaymentRequired:
+      description: Insufficient credits to perform the operation. Top up via /credits or upgrade subscription.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: INSUFFICIENT_CREDITS
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    RateLimited:
+      description: Rate or concurrency limit exceeded.
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: RATE_LIMIT_EXCEEDED
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    Unauthorized:
+      description: 'Missing, invalid, or revoked API key. Pass `X-API-Key: sk-coasty-live-...` (or test).'
+      headers:
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: INVALID_API_KEY
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    BadRequest:
+      description: Invalid request body or parameters.
       headers:
         X-Coasty-Request-Id:
           $ref: '#/components/headers/CoastyRequestId'
@@ -1390,296 +1594,146 @@ components:
               request_id: req_a1b2c3d4e5f6
               retryable: false
               retry_with_same_idempotency_key: false
-    Forbidden:
-      description: API key lacks the required scope or tier-feature is unavailable on the caller's plan.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: INSUFFICIENT_SCOPE
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    Unauthorized:
-      description: 'Missing, invalid, or revoked API key. Pass `X-API-Key: sk-coasty-live-...` (or test).'
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: INVALID_API_KEY
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    ServerError:
-      description: Unexpected server error. Retry with exponential backoff.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: INTERNAL_ERROR
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    PaymentRequired:
-      description: Insufficient credits to perform the operation. Top up via /credits or upgrade subscription.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: INSUFFICIENT_CREDITS
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    BadGateway:
-      description: An upstream dependency returned an invalid response.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: UPSTREAM_ERROR
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    RateLimited:
-      description: Rate or concurrency limit exceeded.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: RATE_LIMIT_EXCEEDED
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    GatewayTimeout:
-      description: An upstream dependency timed out.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: UPSTREAM_TIMEOUT
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
   schemas:
-    BillingActiveItem:
+    ApiError:
       type: object
       required:
-      - machine_id
-      - display_name
-      - status
-      - os_type
-      - rate_cents_per_hour
-      - running_credits_per_hour
-      - stopped_credits_per_hour
-      - accrued_cents
-      - total_credits_billed
-      - suspended_for_billing
+      - error
       properties:
-        machine_id:
-          type: string
-        display_name:
-          type: string
-        status:
-          type: string
-          enum:
-          - running
-          - starting
-          - stopping
-          - restarting
-          - stopped
-          - suspended
-        os_type:
-          type: string
-          enum:
-          - linux
-          - windows
-        rate_cents_per_hour:
-          type: integer
-          description: Hourly rate in this machine's current state.
-        running_credits_per_hour:
-          type: integer
-        stopped_credits_per_hour:
-          type: integer
-        accrued_cents:
-          type: integer
-          description: Cost of the current metering segment so far.
-        since:
-          type:
-          - string
-          - 'null'
-          format: date-time
-          description: When the current segment started.
-        total_credits_billed:
-          type: integer
-        suspended_for_billing:
-          type: boolean
-        auto_destroy_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        ttl_minutes:
-          type:
-          - integer
-          - 'null'
-    UpdateMachineResponse:
-      type: object
-      required:
-      - machine_id
-      - ttl_minutes
-      - auto_destroy_at
-      - request_id
-      properties:
-        machine_id:
-          type: string
-        ttl_minutes:
-          type:
-          - integer
-          - 'null'
-        auto_destroy_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        request_id:
-          type: string
-    ActionResultResponse:
-      type: object
-      required:
-      - machine_id
-      - command
-      - success
-      - duration_ms
-      - request_id
-      properties:
-        machine_id:
-          type: string
-        command:
-          type: string
-        success:
-          type: boolean
-        result:
-          type:
-          - object
-          - 'null'
-          additionalProperties: true
         error:
+          type: object
+          required:
+          - code
+          - message
+          - type
+          - retryable
+          - retry_with_same_idempotency_key
+          - request_id
+          properties:
+            code:
+              type: string
+              description: Stable machine-readable error code (e.g. INVALID_API_KEY, INSUFFICIENT_CREDITS).
+              examples:
+              - INVALID_API_KEY
+            message:
+              type: string
+              description: Human-readable explanation. May include suggestions or examples.
+            type:
+              type: string
+              enum:
+              - auth_error
+              - validation_error
+              - rate_limit_error
+              - billing_error
+              - not_found_error
+              - state_error
+              - server_error
+              - client_error
+            request_id:
+              type: string
+              description: Server-assigned correlation ID. Include in support requests.
+              examples:
+              - req_a1b2c3d4e5f6
+            suggestion:
+              type: string
+              description: A concrete next step, auto-filled per code. LLM agents can act on it to self-recover.
+            retryable:
+              type: boolean
+              description: 'true when retrying the same call may succeed (transient server failures + back-pressure: INTERNAL_ERROR, DB_UNAVAILABLE, SERVICE_UNAVAILABLE, UPSTREAM_*, PREDICTION_FAILED, *_FAILED, RATE_LIMITED, TOO_MANY_RUNS, IDEMPOTENCY_IN_FLIGHT, ...). false for deterministic client errors. A CUA BILLING_UNAVAILABLE caused by refund uncertainty is false unless the server confirmed a shared recovery checkpoint. Present on EVERY error envelope, including gateway/5xx/timeout paths.'
+            retry_with_same_idempotency_key:
+              type: boolean
+              description: 'true only when the concrete response permits replay, the original operation is one of the exact 18 reserve-and-replay operations, and that original request already carried the key. Reuse that SAME key and identical body. A retryable error alone does not make an operation idempotent, and a key cannot be added retroactively. For CUA refund uncertainty this is true only after an exact shared checkpoint was confirmed; unkeyed or uncheckpointed responses are false and must not be retried automatically. A confirmed refunded failure sets this false even when retryable remains true: use a new key, because the old debit is compensated and wallet-guarded by IDEMPOTENCY_ALREADY_REFUNDED. false for deterministic errors.'
+            retry_after:
+              type:
+              - integer
+              - 'null'
+              description: Seconds to wait before retrying (accompanies retryable:true back-pressure codes; mirrors the Retry-After header).
+            examples:
+              type: object
+              additionalProperties: true
+              description: 'Machine-readable limits for self-correction. On PAYLOAD_TOO_LARGE / INVALID_SCREENSHOT: { max_base64_bytes: 10485760, max_mb: 10, min_base64_chars: 100, formats: ["png","jpeg"] }.'
+    ConnectionDetailsRedacted:
+      type: object
+      properties:
+        public_ip:
           type:
           - string
           - 'null'
-        duration_ms:
-          type: integer
-        screenshot:
+        ssh_port:
+          type:
+          - integer
+          - 'null'
+        ssh_username:
           type:
           - string
           - 'null'
-          description: Auto-captured post-action screenshot for browser_* commands. Data URI base64.
-        request_id:
-          type: string
-    BrowserOpRequest:
+        vnc_port:
+          type:
+          - integer
+          - 'null'
+        websocket_port:
+          type:
+          - integer
+          - 'null'
+        has_ssh_key:
+          type: boolean
+          default: false
+        has_vnc_password:
+          type: boolean
+          default: false
+    FilesOpRequest:
       type: object
       additionalProperties: false
       properties:
         parameters:
           type: object
           additionalProperties: true
-        timeout_ms:
-          type:
-          - integer
-          - 'null'
-          minimum: 1000
-          maximum: 120000
+          description: 'Op-specific params: {path} for read; {path, content} for write; etc.'
+    BillingActiveResponse:
+      type: object
+      required:
+      - active
+      - current_run_rate_cents_per_hour
+      - request_id
+      properties:
+        active:
+          type: array
+          items:
+            $ref: '#/components/schemas/BillingActiveItem'
+          description: Every API-billed machine currently metering (running OR stopped). Empty for test-mode keys.
+        current_run_rate_cents_per_hour:
+          type: integer
+          description: Summed instantaneous burn rate across the active list — total cents/hour right now.
+        request_id:
+          type: string
+    ProvisionResponse:
+      type: object
+      required:
+      - machine
+      - connection
+      - request_id
+      properties:
+        machine:
+          $ref: '#/components/schemas/MachineRecord'
+        connection:
+          $ref: '#/components/schemas/ConnectionDetailsRedacted'
+        request_id:
+          type: string
+    ListMachinesResponse:
+      type: object
+      required:
+      - data
+      - request_id
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/MachineRecord'
+        has_more:
+          type: boolean
+          default: false
+        request_id:
+          type: string
     MachineRecord:
       type: object
       required:
@@ -1756,47 +1810,163 @@ components:
         billing:
           $ref: '#/components/schemas/MachineBilling'
           description: How this API-provisioned machine is metered (omitted for non-API machines).
-    BatchActionResponse:
+    UpdateMachineRequest:
+      type: object
+      required:
+      - ttl_minutes
+      additionalProperties: false
+      properties:
+        ttl_minutes:
+          type: integer
+          minimum: 0
+          maximum: 10080
+          description: 0 clears auto-destroy; otherwise the value must be between 5 and 10080.
+          oneOf:
+          - const: 0
+          - minimum: 5
+            maximum: 10080
+    SnapshotResponse:
       type: object
       required:
       - machine_id
-      - results
-      - completed_count
-      - failed_count
+      - snapshot_id
+      - name
+      - created_at
+      - credits_charged
       - request_id
       properties:
         machine_id:
           type: string
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/ActionResultResponse'
-        completed_count:
+        snapshot_id:
+          type: string
+        name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        credits_charged:
           type: integer
-        failed_count:
-          type: integer
-        aborted:
-          type: boolean
-          default: false
         request_id:
           type: string
-    BillingActiveResponse:
+    UpdateMachineResponse:
       type: object
       required:
-      - active
-      - current_run_rate_cents_per_hour
+      - machine_id
+      - ttl_minutes
+      - auto_destroy_at
       - request_id
       properties:
-        active:
-          type: array
-          items:
-            $ref: '#/components/schemas/BillingActiveItem'
-          description: Every API-billed machine currently metering (running OR stopped). Empty for test-mode keys.
-        current_run_rate_cents_per_hour:
-          type: integer
-          description: Summed instantaneous burn rate across the active list — total cents/hour right now.
+        machine_id:
+          type: string
+        ttl_minutes:
+          type:
+          - integer
+          - 'null'
+        auto_destroy_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
         request_id:
           type: string
+    BillingActiveItem:
+      type: object
+      required:
+      - machine_id
+      - display_name
+      - status
+      - os_type
+      - rate_cents_per_hour
+      - running_credits_per_hour
+      - stopped_credits_per_hour
+      - accrued_cents
+      - total_credits_billed
+      - suspended_for_billing
+      properties:
+        machine_id:
+          type: string
+        display_name:
+          type: string
+        status:
+          type: string
+          enum:
+          - running
+          - starting
+          - stopping
+          - restarting
+          - stopped
+          - suspended
+        os_type:
+          type: string
+          enum:
+          - linux
+          - windows
+        rate_cents_per_hour:
+          type: integer
+          description: Hourly rate in this machine's current state.
+        running_credits_per_hour:
+          type: integer
+        stopped_credits_per_hour:
+          type: integer
+        accrued_cents:
+          type: integer
+          description: Cost of the current metering segment so far.
+        since:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the current segment started.
+        total_credits_billed:
+          type: integer
+        suspended_for_billing:
+          type: boolean
+        auto_destroy_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        ttl_minutes:
+          type:
+          - integer
+          - 'null'
+    MachinePricingResponse:
+      type: object
+      required:
+      - pricing
+      - request_id
+      properties:
+        pricing:
+          type: object
+          additionalProperties: true
+          description: The live machine runtime, one-time, billing granularity, and TTL rate card.
+        request_id:
+          type: string
+    TerminalRequest:
+      type: object
+      required:
+      - command
+      additionalProperties: false
+      properties:
+        command:
+          type: string
+          minLength: 1
+          maxLength: 8192
+        timeout_ms:
+          type: integer
+          minimum: 1000
+          maximum: 120000
+          default: 30000
+        session_id:
+          type:
+          - string
+          - 'null'
+          maxLength: 128
+        cwd:
+          type:
+          - string
+          - 'null'
+          maxLength: 512
     MachineBilling:
       type: object
       description: Per-machine runtime billing state. 1 credit = 1 cent.
@@ -1839,6 +2009,164 @@ components:
           type:
           - integer
           - 'null'
+    GetMachineResponse:
+      type: object
+      required:
+      - machine
+      - request_id
+      properties:
+        machine:
+          $ref: '#/components/schemas/MachineRecord'
+        request_id:
+          type: string
+    ActionResultResponse:
+      type: object
+      required:
+      - machine_id
+      - command
+      - success
+      - duration_ms
+      - request_id
+      properties:
+        machine_id:
+          type: string
+        command:
+          type: string
+        success:
+          type: boolean
+        result:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+        error:
+          type:
+          - string
+          - 'null'
+        duration_ms:
+          type: integer
+        screenshot:
+          type:
+          - string
+          - 'null'
+          description: Auto-captured post-action screenshot for browser_* commands. Data URI base64.
+        request_id:
+          type: string
+    BatchActionResponse:
+      type: object
+      required:
+      - machine_id
+      - results
+      - completed_count
+      - failed_count
+      - request_id
+      properties:
+        machine_id:
+          type: string
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionResultResponse'
+        completed_count:
+          type: integer
+        failed_count:
+          type: integer
+        aborted:
+          type: boolean
+          default: false
+        request_id:
+          type: string
+    BrowserOpRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        parameters:
+          type: object
+          additionalProperties: true
+        timeout_ms:
+          type:
+          - integer
+          - 'null'
+          minimum: 1000
+          maximum: 120000
+    LifecycleResponse:
+      type: object
+      required:
+      - machine_id
+      - status
+      - message
+      - request_id
+      properties:
+        machine_id:
+          type: string
+        status:
+          type: string
+        message:
+          type: string
+        request_id:
+          type: string
+    ConnectionDetailsFull:
+      type: object
+      required:
+      - machine_id
+      - request_id
+      properties:
+        machine_id:
+          type: string
+        public_ip:
+          type:
+          - string
+          - 'null'
+        ssh_port:
+          type:
+          - integer
+          - 'null'
+        ssh_username:
+          type:
+          - string
+          - 'null'
+        ssh_private_key_pem:
+          type:
+          - string
+          - 'null'
+          description: ED25519 (Linux) or RSA (Windows) private key. HIGHLY SENSITIVE — store in a secrets manager.
+        vnc_port:
+          type:
+          - integer
+          - 'null'
+        vnc_password:
+          type:
+          - string
+          - 'null'
+        websocket_port:
+          type:
+          - integer
+          - 'null'
+        websocket_url:
+          type:
+          - string
+          - 'null'
+        devtools_url:
+          type:
+          - string
+          - 'null'
+        vnc_url:
+          type:
+          - string
+          - 'null'
+          description: When available, a signed, short-lived, INTERACTIVE noVNC desktop URL (targets /vnc.html?autoconnect=1). Open directly in a browser or iframe to view AND control the desktop — no IP/port/password needed. Null when not available for this machine (use public_ip + vnc_port + vnc_password instead). Expires (~1h); re-fetch from this endpoint to refresh.
+        screen_width:
+          type:
+          - integer
+          - 'null'
+          description: Actual desktop width, when reported by the machine.
+        screen_height:
+          type:
+          - integer
+          - 'null'
+          description: Actual desktop height, when reported by the machine.
+        request_id:
+          type: string
     ActionRequest:
       type: object
       required:
@@ -1908,201 +2236,6 @@ components:
           - 'null'
           minimum: 1000
           maximum: 120000
-    ApiError:
-      type: object
-      required:
-      - error
-      properties:
-        error:
-          type: object
-          required:
-          - code
-          - message
-          - type
-          - retryable
-          - retry_with_same_idempotency_key
-          - request_id
-          properties:
-            code:
-              type: string
-              description: Stable machine-readable error code (e.g. INVALID_API_KEY, INSUFFICIENT_CREDITS).
-              examples:
-              - INVALID_API_KEY
-            message:
-              type: string
-              description: Human-readable explanation. May include suggestions or examples.
-            type:
-              type: string
-              enum:
-              - auth_error
-              - validation_error
-              - rate_limit_error
-              - billing_error
-              - not_found_error
-              - state_error
-              - server_error
-              - client_error
-            request_id:
-              type: string
-              description: Server-assigned correlation ID. Include in support requests.
-              examples:
-              - req_a1b2c3d4e5f6
-            suggestion:
-              type: string
-              description: A concrete next step, auto-filled per code. LLM agents can act on it to self-recover.
-            retryable:
-              type: boolean
-              description: 'true when retrying the same call may succeed (transient server failures + back-pressure: INTERNAL_ERROR, DB_UNAVAILABLE, SERVICE_UNAVAILABLE, UPSTREAM_*, PREDICTION_FAILED, *_FAILED, RATE_LIMITED, TOO_MANY_RUNS, IDEMPOTENCY_IN_FLIGHT, ...). false for deterministic client errors. A CUA BILLING_UNAVAILABLE caused by refund uncertainty is false unless the server confirmed a shared recovery checkpoint. Present on EVERY error envelope, including gateway/5xx/timeout paths.'
-            retry_with_same_idempotency_key:
-              type: boolean
-              description: 'true only when the concrete response permits replay, the original operation is one of the exact 18 reserve-and-replay operations, and that original request already carried the key. Reuse that SAME key and identical body. A retryable error alone does not make an operation idempotent, and a key cannot be added retroactively. For CUA refund uncertainty this is true only after an exact shared checkpoint was confirmed; unkeyed or uncheckpointed responses are false and must not be retried automatically. A confirmed refunded failure sets this false even when retryable remains true: use a new key, because the old debit is compensated and wallet-guarded by IDEMPOTENCY_ALREADY_REFUNDED. false for deterministic errors.'
-            retry_after:
-              type:
-              - integer
-              - 'null'
-              description: Seconds to wait before retrying (accompanies retryable:true back-pressure codes; mirrors the Retry-After header).
-            examples:
-              type: object
-              additionalProperties: true
-              description: 'Machine-readable limits for self-correction. On PAYLOAD_TOO_LARGE / INVALID_SCREENSHOT: { max_base64_bytes: 10485760, max_mb: 10, min_base64_chars: 100, formats: ["png","jpeg"] }.'
-    ConnectionDetailsFull:
-      type: object
-      required:
-      - machine_id
-      - request_id
-      properties:
-        machine_id:
-          type: string
-        public_ip:
-          type:
-          - string
-          - 'null'
-        ssh_port:
-          type:
-          - integer
-          - 'null'
-        ssh_username:
-          type:
-          - string
-          - 'null'
-        ssh_private_key_pem:
-          type:
-          - string
-          - 'null'
-          description: ED25519 (Linux) or RSA (Windows) private key. HIGHLY SENSITIVE — store in a secrets manager.
-        vnc_port:
-          type:
-          - integer
-          - 'null'
-        vnc_password:
-          type:
-          - string
-          - 'null'
-        websocket_port:
-          type:
-          - integer
-          - 'null'
-        websocket_url:
-          type:
-          - string
-          - 'null'
-        devtools_url:
-          type:
-          - string
-          - 'null'
-        vnc_url:
-          type:
-          - string
-          - 'null'
-          description: When available, a signed, short-lived, INTERACTIVE noVNC desktop URL (targets /vnc.html?autoconnect=1). Open directly in a browser or iframe to view AND control the desktop — no IP/port/password needed. Null when not available for this machine (use public_ip + vnc_port + vnc_password instead). Expires (~1h); re-fetch from this endpoint to refresh.
-        screen_width:
-          type:
-          - integer
-          - 'null'
-          description: Actual desktop width, when reported by the machine.
-        screen_height:
-          type:
-          - integer
-          - 'null'
-          description: Actual desktop height, when reported by the machine.
-        request_id:
-          type: string
-    FilesOpRequest:
-      type: object
-      additionalProperties: false
-      properties:
-        parameters:
-          type: object
-          additionalProperties: true
-          description: 'Op-specific params: {path} for read; {path, content} for write; etc.'
-    UpdateMachineRequest:
-      type: object
-      required:
-      - ttl_minutes
-      additionalProperties: false
-      properties:
-        ttl_minutes:
-          type: integer
-          minimum: 0
-          maximum: 10080
-          description: 0 clears auto-destroy; otherwise the value must be between 5 and 10080.
-          oneOf:
-          - const: 0
-          - minimum: 5
-            maximum: 10080
-    BatchActionRequest:
-      type: object
-      required:
-      - steps
-      additionalProperties: false
-      properties:
-        steps:
-          type: array
-          minItems: 1
-          maxItems: 50
-          items:
-            $ref: '#/components/schemas/ActionRequest'
-        stop_on_error:
-          type: boolean
-          default: true
-    ScreenshotResponse:
-      type: object
-      required:
-      - machine_id
-      - image_b64
-      - mime_type
-      - width
-      - height
-      - captured_at
-      - request_id
-      properties:
-        machine_id:
-          type: string
-        image_b64:
-          type: string
-          description: 'Base64-encoded screenshot (no data: prefix).'
-        mime_type:
-          type: string
-          default: image/jpeg
-        width:
-          type: integer
-        height:
-          type: integer
-        captured_at:
-          type: string
-          format: date-time
-        request_id:
-          type: string
-    GetMachineResponse:
-      type: object
-      required:
-      - machine
-      - request_id
-      properties:
-        machine:
-          $ref: '#/components/schemas/MachineRecord'
-        request_id:
-          type: string
     ProvisionRequest:
       type: object
       required:
@@ -2157,54 +2290,49 @@ components:
           additionalProperties:
             type: string
           description: Max 16 entries; keys ≤64 chars, values ≤256 chars.
-    TerminalRequest:
-      type: object
-      required:
-      - command
-      additionalProperties: false
-      properties:
-        command:
-          type: string
-          minLength: 1
-          maxLength: 8192
-        timeout_ms:
-          type: integer
-          minimum: 1000
-          maximum: 120000
-          default: 30000
-        session_id:
-          type:
-          - string
-          - 'null'
-          maxLength: 128
-        cwd:
-          type:
-          - string
-          - 'null'
-          maxLength: 512
-    SnapshotResponse:
+    ScreenshotResponse:
       type: object
       required:
       - machine_id
-      - snapshot_id
-      - name
-      - created_at
-      - credits_charged
+      - image_b64
+      - mime_type
+      - width
+      - height
+      - captured_at
       - request_id
       properties:
         machine_id:
           type: string
-        snapshot_id:
+        image_b64:
           type: string
-        name:
+          description: 'Base64-encoded screenshot (no data: prefix).'
+        mime_type:
           type: string
-        created_at:
+          default: image/jpeg
+        width:
+          type: integer
+        height:
+          type: integer
+        captured_at:
           type: string
           format: date-time
-        credits_charged:
-          type: integer
         request_id:
           type: string
+    BatchActionRequest:
+      type: object
+      required:
+      - steps
+      additionalProperties: false
+      properties:
+        steps:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/ActionRequest'
+        stop_on_error:
+          type: boolean
+          default: true
     HealthResponse:
       type: object
       required:
@@ -2218,92 +2346,15 @@ components:
           type: string
         service:
           type: string
-    ListMachinesResponse:
-      type: object
-      required:
-      - data
-      - request_id
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/MachineRecord'
-        has_more:
-          type: boolean
-          default: false
-        request_id:
-          type: string
-    ConnectionDetailsRedacted:
-      type: object
-      properties:
-        public_ip:
-          type:
-          - string
-          - 'null'
-        ssh_port:
-          type:
-          - integer
-          - 'null'
-        ssh_username:
-          type:
-          - string
-          - 'null'
-        vnc_port:
-          type:
-          - integer
-          - 'null'
-        websocket_port:
-          type:
-          - integer
-          - 'null'
-        has_ssh_key:
-          type: boolean
-          default: false
-        has_vnc_password:
-          type: boolean
-          default: false
-    ProvisionResponse:
-      type: object
-      required:
-      - machine
-      - connection
-      - request_id
-      properties:
-        machine:
-          $ref: '#/components/schemas/MachineRecord'
-        connection:
-          $ref: '#/components/schemas/ConnectionDetailsRedacted'
-        request_id:
-          type: string
-    MachinePricingResponse:
-      type: object
-      required:
-      - pricing
-      - request_id
-      properties:
-        pricing:
-          type: object
-          additionalProperties: true
-          description: The live machine runtime, one-time, billing granularity, and TTL rate card.
-        request_id:
-          type: string
-    LifecycleResponse:
-      type: object
-      required:
-      - machine_id
-      - status
-      - message
-      - request_id
-      properties:
-        machine_id:
-          type: string
-        status:
-          type: string
-        message:
-          type: string
-        request_id:
-          type: string
   parameters:
+    MachineId:
+      name: machine_id
+      in: path
+      required: true
+      description: Machine UUID, or `mch_test_<8-32 lowercase hex>` for sandbox/test-mode keys.
+      schema:
+        type: string
+        pattern: ^(?:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}|mch_test_[0-9a-f]{8,32})$
     IdempotencyKey:
       name: Idempotency-Key
       in: header
@@ -2316,57 +2367,6 @@ components:
       examples:
         uuid:
           value: 550e8400-e29b-41d4-a716-446655440000
-    MachineId:
-      name: machine_id
-      in: path
-      required: true
-      description: Machine UUID, or `mch_test_<8-32 lowercase hex>` for sandbox/test-mode keys.
-      schema:
-        type: string
-        pattern: ^(?:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}|mch_test_[0-9a-f]{8,32})$
-  headers:
-    IdempotencyStatus:
-      description: Lifecycle status of the canonical idempotent attempt when applicable.
-      schema:
-        type: string
-        enum:
-        - processing
-        - completed
-    KeyKind:
-      description: Whether the authenticated key is live or test.
-      schema:
-        type: string
-        enum:
-        - live
-        - test
-        - legacy
-    RetryAfter:
-      description: Seconds to wait before retrying. Present on retryable back-pressure and transient failures.
-      schema:
-        type: integer
-        minimum: 0
-    TestMode:
-      description: true when the request executed against the sandbox namespace.
-      schema:
-        type: boolean
-    CreditsCharged:
-      description: Credits charged by this response (zero for sandbox keys and stored replays).
-      schema:
-        type: integer
-        minimum: 0
-    CoastyRequestId:
-      description: Coasty correlation identifier for this request.
-      schema:
-        type: string
-    IdempotentReplay:
-      description: true when this is a stored response replay rather than a new execution.
-      schema:
-        type: boolean
-    CreditsRefunded:
-      description: Credits durably returned to the wallet after a failed billed operation.
-      schema:
-        type: integer
-        minimum: 1
   securitySchemes:
     apiKey:
       type: apiKey
