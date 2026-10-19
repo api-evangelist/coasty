@@ -1,7 +1,7 @@
 {
   "provider": "coasty",
   "sources": [
-    "_original/coasty-openapi-original.json"
+    "_original/coasty-openapi.json"
   ],
   "outputs": [
     "coasty-keys-api-openapi.yml",
@@ -18,17 +18,8 @@
   "warnings": [],
   "notes": [
     "sourced from openapi/_original/ (1 archived document(s)); previously refined output at the top level was skipped rather than re-split",
-    "coasty-openapi-original.json: upgraded openapi 3.1.0 -> OpenAPI 3.2.0",
+    "coasty-openapi.json: upgraded openapi 3.1.0 -> OpenAPI 3.2.0",
     "apis.yml register: already-registered"
   ],
-  "skipped": [
-    "coasty-keys-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "coasty-machines-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "coasty-predict-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "coasty-runs-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "coasty-schedules-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "coasty-sessions-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "coasty-triggers-api-openapi.yml: previously refined output, superseded by openapi/_original/",
-    "coasty-workflows-api-openapi.yml: previously refined output, superseded by openapi/_original/"
-  ]
+  "skipped": []
 }

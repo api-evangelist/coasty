@@ -8,7 +8,89 @@ info:
 
     Coasty is a Computer Use Agent (CUA) platform: predict actions from screenshots,
 
-    provision managed VMs, and run scheduled automation against them.'
+    provision managed VMs, and run scheduled automation against them. ## Authentication
+
+
+    All endpoints (except `/v1/triggers/webhook/{webhook_id}` and health checks) require an API key. Pass it as either:
+
+
+    - `X-API-Key: sk-coasty-live-...` (or `sk-coasty-test-...` for sandbox)
+
+    - `Authorization: Bearer sk-coasty-live-...`
+
+
+    The external webhook endpoint does not use an API key, but it is authenticated:
+
+    send the HMAC-SHA256 `Coasty-Signature` credential documented on that operation. Test-mode keys (`sk-coasty-test-*`) preserve the same core schemas for documented
+
+    sandbox-supported operations and never debit Coasty credits. With a test Coasty key,
+
+    explicit BYOK is provider-direct only for the direct CUA flow: `POST /v1/predict`,
+
+    `POST /v1/ground`, `POST /v1/sessions`, and `POST /v1/sessions/{id}/predict`. Predict, ground, and session create require an explicit per-request X-LLM-Api-Key plus
+
+    X-LLM-Provider under test auth. A body provider without that header returns 422
+
+    LLM_KEY_NOT_CONFIGURED: Stored provider keys are unavailable for test API keys. Send
+
+    X-LLM-Api-Key explicitly for direct BYOK. Test auth never reads or uses a stored live provider
+
+    key. Session create fixes that explicit key for
+
+    inherited predicts but makes no inference call. Predict, ground, and session predict can bill
+
+    the supplied provider account. Managed-mode Task runs, Workflow runs, and schedules remain
+
+    deterministic sandbox. BYOK intent on those async endpoints returns 422
+
+    LLM_PROVIDER_UNSUPPORTED before execution: BYOK is unavailable for synthetic test runs,
+
+    workflows, and schedules. Use managed mode or a live Coasty API key. They never decrypt or
+
+    require a stored provider key and do not call or bill Anthropic/OpenAI. Live-only stored BYOK-key access or mutation is unavailable to test keys. Keep real provider
+
+    secrets out of sandbox and CI requests, and use a live Coasty key for real async execution. ## Pricing & budgeting
+
+
+    Published base rates and defaults (read effective deployed CUA/task pricing at
+
+    `GET /v1/models` → `pricing`, and machine runtime pricing at `GET /v1/machines/pricing`):
+
+
+    | Endpoint | Credits |
+
+    |---|---|
+
+    | `POST /v1/predict` | Managed: 5 base; BYOK: 0 |
+
+    | `POST /v1/sessions` | Managed: 10 fixed; BYOK: 0 |
+
+    | `POST /v1/sessions/{id}/predict` | Managed: 4 base; BYOK: 0 |
+
+    | `POST /v1/ground` | Managed: 3 base; BYOK: 0 |
+
+    | `POST /v1/parse` | 0 (free) |
+
+
+    Predict and session-predict can add provider-visible trajectory-image, HD current/trajectory
+
+    image, v1-engine, and combined system_prompt + trimmed-instructions (>500 chars) surcharges. Ground can add only the current-image HD surcharge; session creation has no surcharge. Managed-model published defaults: scheduled CUA execution bills the consumer subscription-credit balance
+
+    at 10 credits/minute with a 20-credit start minimum for non-Unlimited accounts. Unlimited
+
+    bypasses that runtime credit meter/start gate but retains token and concurrency safeguards. Managed schedule create/run-now use a $0.20 API-wallet eligibility gate. BYOK schedules
+
+    bypass that gate and the runtime credit meter and debit zero Coasty platform credits. Live-key schedule execution is provider-billed. Managed-mode test execution is deterministic sandbox; test-auth BYOK intent returns 422 LLM_PROVIDER_UNSUPPORTED. Read `GET /v1/models` →
+
+    `pricing.schedules` for effective values, plan applicability, and webhook policy. Your subscription tier (`free | starter | professional | enterprise`) is
+
+    reported on the key, but the developer API is PREPAID: what bounds you is your
+
+    credit balance, not your plan. Custom prompts in particular are NOT tier-gated. `system_prompt` and `instructions` are available on every tier including free,
+
+    against a budget of 32,000 characters SHARED between the two fields (the sum is
+
+    measured, and exceeding it returns 400 INPUT_TOO_LARGE).'
   contact:
     name: Coasty Developer Support
     url: https://coasty.ai/support
@@ -21,13 +103,13 @@ servers:
 - url: https://coasty.ai
   description: Production
 - url: https://coasty.ai
-  description: Sandbox — use sk-coasty-test-* keys against the same host. No billing, mock VMs.
+  description: Sandbox — use sk-coasty-test-* keys against the same host. No Coasty billing. Explicit-header BYOK can call the provider only for predict, ground, and inherited session predict; session create fixes the header key without inference, and test auth never reads a stored live key. Managed-mode Tasks, Workflows, and schedules remain deterministic sandbox. BYOK intent on those async endpoints returns 422 LLM_PROVIDER_UNSUPPORTED before execution and makes no provider call.
 security:
 - apiKey: []
 - bearerAuth: []
 tags:
 - name: Machines
-  description: Provision and control managed VMs.
+  description: Provision managed VMs or enroll customer-operated external machines. Runs and Workflow task steps use the same machine_id contract for both kinds.
 paths:
   /v1/machines:
     post:
@@ -35,7 +117,7 @@ paths:
       - Machines
       operationId: provisionMachine
       summary: Provision a new VM
-      description: Managed VM provisioning. Linux defaults are cheap (1 cpu / 2 GB / 10 GB) and bill at agent-minute rates. Test keys (sk-coasty-test-*) return mock VMs with no cloud calls.
+      description: 'Managed VM provisioning. Managed machines debit the Developer API wallet by runtime state, not agent-minute execution: published defaults are 5 credits/hour running Linux, 9 running Windows, and 1 stopped/suspended, with per-minute granularity. Read effective deployed rates from GET /v1/machines/pricing. Test keys (sk-coasty-test-*) return mock VMs with no cloud calls.'
       security:
       - apiKey: []
       - bearerAuth: []
@@ -55,6 +137,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ProvisionResponse'
           headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
             X-Coasty-Request-Id:
               $ref: '#/components/headers/CoastyRequestId'
             X-Coasty-Key-Kind:
@@ -63,6 +147,8 @@ paths:
               $ref: '#/components/headers/TestMode'
             X-Coasty-Idempotent-Replay:
               $ref: '#/components/headers/IdempotentReplay'
+            Idempotency-Replayed:
+              $ref: '#/components/headers/IdempotencyReplayed'
             Idempotency-Status:
               $ref: '#/components/headers/IdempotencyStatus'
         '400':
@@ -125,6 +211,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ListMachinesResponse'
           headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
             X-Coasty-Request-Id:
               $ref: '#/components/headers/CoastyRequestId'
             X-Coasty-Key-Kind:
@@ -164,6 +252,84 @@ paths:
       x-offering: machines
       x-feature-flag: PUBLIC_MACHINES_API_ENABLED
       x-idempotency: none
+  /v1/machines/external:
+    post:
+      tags:
+      - Machines
+      operationId: enrollExternalMachine
+      summary: Enroll a customer-operated machine
+      description: 'Scope: `machines:write`. Creates an external machine_id for normal Tasks, Workflows, and schedules without provisioning Coasty compute. Authenticate this enrollment with the OWNER API key. Idempotency-Key is required: same key + canonical body safely replays the committed enrollment; a different body conflicts. The response contains a machine-scoped device_token only in this no-store enrollment response/replay, never in list/get; never put an owner API key in the driver.'
+      security:
+      - apiKey: []
+      - bearerAuth: []
+      parameters:
+      - $ref: '#/components/parameters/RequiredIdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExternalMachineEnrollRequest'
+      responses:
+        '201':
+          description: External machine enrolled. Persist device_token immediately. It is recoverable only by replaying the exact Idempotency-Key/body within the 24-hour enrollment recovery window; list/get never return it.
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+            X-Coasty-Request-Id:
+              $ref: '#/components/headers/CoastyRequestId'
+            X-Coasty-Key-Kind:
+              $ref: '#/components/headers/KeyKind'
+            X-Coasty-Test-Mode:
+              $ref: '#/components/headers/TestMode'
+            X-Coasty-Idempotent-Replay:
+              $ref: '#/components/headers/IdempotentReplay'
+            Idempotency-Replayed:
+              $ref: '#/components/headers/IdempotencyReplayed'
+            Idempotency-Status:
+              $ref: '#/components/headers/IdempotencyStatus'
+            Cache-Control:
+              description: Enrollment contains a one-time secret and must never be cached.
+              schema:
+                type: string
+                const: no-store
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalMachineEnrollResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+      x-auth-mode: api_key
+      x-required-scope: machines:write
+      x-required-scopes:
+      - machines:write
+      x-scope-policy: required
+      x-billing-code: null
+      x-offering: machines
+      x-feature-flag: PUBLIC_MACHINES_API_ENABLED
+      x-idempotency: account-enrollment-replay
   /v1/machines/health:
     get:
       tags:
@@ -192,7 +358,7 @@ paths:
       - Machines
       operationId: getMachinePricing
       summary: Get the live machine runtime rate card
-      description: 'Scope: `machines:read`. Returns runtime rates, one-time charges, billing granularity, insufficient-funds behavior, and TTL bounds.'
+      description: 'Scope: `machines:read`. Returns deployment-effective runtime rates, one-time charges, provisioning eligibility gate (a minimum-balance gate, not a fee), billing granularity, insufficient-funds behavior, and TTL bounds.'
       security:
       - apiKey: []
       - bearerAuth: []
@@ -204,6 +370,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/MachinePricingResponse'
           headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
             X-Coasty-Request-Id:
               $ref: '#/components/headers/CoastyRequestId'
             X-Coasty-Key-Kind:
@@ -261,6 +429,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/BillingActiveResponse'
           headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
             X-Coasty-Request-Id:
               $ref: '#/components/headers/CoastyRequestId'
             X-Coasty-Key-Kind:
@@ -319,6 +489,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/GetMachineResponse'
           headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
             X-Coasty-Request-Id:
               $ref: '#/components/headers/CoastyRequestId'
             X-Coasty-Key-Kind:
@@ -362,8 +534,8 @@ paths:
       tags:
       - Machines
       operationId: terminateMachine
-      summary: Terminate a machine
-      description: Irreversible. Stops billing the agent-minute rate.
+      summary: Terminate or revoke a machine
+      description: Irreversible owner operation. Managed machines are terminated and stop runtime billing. External-machine registration is deleted, and its device token and every outstanding command lease are revoked immediately; caller-owned host and storage are untouched.
       security:
       - apiKey: []
       - bearerAuth: []
@@ -375,6 +547,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/LifecycleResponse'
           headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
             X-Coasty-Request-Id:
               $ref: '#/components/headers/CoastyRequestId'
             X-Coasty-Key-Kind:
@@ -418,8 +592,8 @@ paths:
       tags:
       - Machines
       operationId: updateMachine
-      summary: Set, extend, or clear a machine auto-destroy lease
-      description: 'Scope: `machines:write`. `ttl_minutes=0` clears auto-destroy; values 5..10080 schedule termination from now.'
+      summary: Set, extend, or clear a machine resource-expiry lease
+      description: 'Scope: `machines:write`. `ttl_minutes=0` clears expiry; values 5..10080 schedule expiry from now. Expiry destroys managed infrastructure. For an external machine it deletes only the Coasty registration and revokes device access/leases; caller-owned host and storage remain untouched.'
       security:
       - apiKey: []
       - bearerAuth: []
@@ -437,6 +611,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/UpdateMachineResponse'
           headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
             X-Coasty-Request-Id:
               $ref: '#/components/headers/CoastyRequestId'
             X-Coasty-Key-Kind:
@@ -476,6 +652,249 @@ paths:
       x-offering: machines
       x-feature-flag: PUBLIC_MACHINES_API_ENABLED
       x-idempotency: none
+  /v1/machines/{machine_id}/commands:
+    parameters:
+    - $ref: '#/components/parameters/MachineId'
+    get:
+      tags:
+      - Machines
+      operationId: listExternalMachineCommands
+      summary: Long-poll commands for an external machine
+      description: DEVICE TOKEN ONLY. Returns commands after an exclusive cursor. Persist next_cursor only after durably processing the batch. A long-poll timeout returns 200 with data=[]; reconnect with the last committed cursor. The server permits exactly one queued or delivered command per external machine; concurrent dispatch returns 409 MACHINE_BUSY, preventing cross-replica races on one physical display. Each command is fenced, deadline-bound, and tied to the frame in precondition_frame_id. A driver must reject expired, stale-fenced, unsupported, or visibly stale commands instead of executing them.
+      security:
+      - machineToken: []
+      parameters:
+      - $ref: '#/components/parameters/ExternalCommandAfter'
+      - $ref: '#/components/parameters/ExternalCommandLimit'
+      - $ref: '#/components/parameters/ExternalCommandWaitSeconds'
+      responses:
+        '200':
+          description: Command batch, or an empty data array when the long poll expires.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalMachineCommandsResponse'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+            X-Coasty-Request-Id:
+              $ref: '#/components/headers/CoastyRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/DeviceUnauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+      x-auth-mode: device_token
+      x-required-scope: null
+      x-required-scopes: []
+      x-scope-policy: machine_token
+      x-billing-code: null
+      x-offering: machines
+      x-feature-flag: PUBLIC_MACHINES_API_ENABLED
+      x-idempotency: none
+  /v1/machines/{machine_id}/observations:
+    parameters:
+    - $ref: '#/components/parameters/MachineId'
+    post:
+      tags:
+      - Machines
+      operationId: submitExternalMachineObservation
+      summary: Submit a screenshot observation
+      description: DEVICE TOKEN ONLY. Upload one monotonically sequenced, one-frame PNG/JPEG. The encoded payload is limited to 10,485,760 base64 characters (after an optional exact PNG/JPEG data-URI prefix), and decoded dimensions to 320x240 through 3840x2160. The server verifies format, dimensions, and the optional submitted-byte SHA-256, then strips metadata and re-encodes; the response SHA-256 covers those normalized bytes and may differ. Identical sequence replays are safe; reusing a sequence with different bytes is 409. Live transport frames are encrypted, logically expire after 15 minutes, and are excluded from SSE, webhooks, ordinary logs, and ordinary durable run history. Separately, if a live BYOK Task, Workflow, or schedule uses a frame for a visual decision, the fail-closed pre-provider audit retains an exact model-input copy under the account-lifetime screenshot rules.
+      security:
+      - machineToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExternalMachineObservationRequest'
+      responses:
+        '200':
+          description: Verified observation, including its canonical frame_id and decoded dimensions.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalMachineObservationResponse'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+            X-Coasty-Request-Id:
+              $ref: '#/components/headers/CoastyRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/DeviceUnauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+      x-auth-mode: device_token
+      x-required-scope: null
+      x-required-scopes: []
+      x-scope-policy: machine_token
+      x-billing-code: null
+      x-offering: machines
+      x-feature-flag: PUBLIC_MACHINES_API_ENABLED
+      x-idempotency: none
+  /v1/machines/{machine_id}/commands/{command_id}/results:
+    parameters:
+    - $ref: '#/components/parameters/MachineId'
+    - $ref: '#/components/parameters/ExternalCommandId'
+    post:
+      tags:
+      - Machines
+      operationId: submitExternalMachineCommandResult
+      summary: Acknowledge an external-machine command
+      description: DEVICE TOKEN ONLY. Submit a terminal success/failure using the exact fencing_token and precondition_frame_id from the command. The optional observation atomically supplies the post-action frame. An identical result replay returns replayed=true; a different body for a completed command, a frame-precondition mismatch, an expired command, or a stale fencing token returns 409 and is never re-executed.
+      security:
+      - machineToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExternalMachineCommandResultRequest'
+      responses:
+        '200':
+          description: Command result accepted or safely replayed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalMachineCommandResultResponse'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+            X-Coasty-Request-Id:
+              $ref: '#/components/headers/CoastyRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/DeviceUnauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+      x-auth-mode: device_token
+      x-required-scope: null
+      x-required-scopes: []
+      x-scope-policy: machine_token
+      x-billing-code: null
+      x-offering: machines
+      x-feature-flag: PUBLIC_MACHINES_API_ENABLED
+      x-idempotency: none
+  /v1/machines/{machine_id}/heartbeat:
+    parameters:
+    - $ref: '#/components/parameters/MachineId'
+    post:
+      tags:
+      - Machines
+      operationId: heartbeatExternalMachine
+      summary: Renew an external-machine driver lease
+      description: DEVICE TOKEN ONLY. Refreshes connection_status and last_seen_at using the current fencing_token and returns authoritative last_sequence/last_frame_id recovery state. A restarted driver can long-poll once to learn the current fence, heartbeat, then submit sequence=last_sequence+1. A revoked machine or stale lease generation is rejected; heartbeats never revive an old device token.
+      security:
+      - machineToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExternalMachineHeartbeatRequest'
+      responses:
+        '200':
+          description: Lease renewed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalMachineHeartbeatResponse'
+          headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
+            X-Coasty-Request-Id:
+              $ref: '#/components/headers/CoastyRequestId'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/DeviceUnauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '413':
+          $ref: '#/components/responses/PayloadTooLarge'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+        '500':
+          $ref: '#/components/responses/ServerError'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+        '504':
+          $ref: '#/components/responses/GatewayTimeout'
+      x-auth-mode: device_token
+      x-required-scope: null
+      x-required-scopes: []
+      x-scope-policy: machine_token
+      x-billing-code: null
+      x-offering: machines
+      x-feature-flag: PUBLIC_MACHINES_API_ENABLED
+      x-idempotency: none
   /v1/machines/{machine_id}/start:
     parameters:
     - $ref: '#/components/parameters/MachineId'
@@ -484,6 +903,7 @@ paths:
       - Machines
       operationId: startMachine
       summary: Start a stopped machine
+      description: 'Managed: requests a power-on. External: logical dispatch start only — increments the fencing generation, cancels pending commands, and marks the driver stale until it reconnects; Coasty does not power the caller-owned host.'
       security:
       - apiKey: []
       - bearerAuth: []
@@ -495,6 +915,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/LifecycleResponse'
           headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
             X-Coasty-Request-Id:
               $ref: '#/components/headers/CoastyRequestId'
             X-Coasty-Key-Kind:
@@ -542,6 +964,7 @@ paths:
       - Machines
       operationId: stopMachine
       summary: Stop a running machine
+      description: 'Managed: requests a power-off while preserving disk. External: logical dispatch stop only — increments the fencing generation, cancels pending commands, and marks the driver disconnected; Coasty does not power the caller-owned host.'
       security:
       - apiKey: []
       - bearerAuth: []
@@ -553,6 +976,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/LifecycleResponse'
           headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
             X-Coasty-Request-Id:
               $ref: '#/components/headers/CoastyRequestId'
             X-Coasty-Key-Kind:
@@ -600,6 +1025,7 @@ paths:
       - Machines
       operationId: restartMachine
       summary: Restart a running machine
+      description: 'Managed: requests a reboot. External: logical dispatch restart only — increments the fencing generation, cancels pending commands, and marks the driver stale until it reconnects; Coasty does not reboot the caller-owned host.'
       security:
       - apiKey: []
       - bearerAuth: []
@@ -611,6 +1037,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/LifecycleResponse'
           headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
             X-Coasty-Request-Id:
               $ref: '#/components/headers/CoastyRequestId'
             X-Coasty-Key-Kind:
@@ -658,7 +1086,7 @@ paths:
       - Machines
       operationId: snapshotMachine
       summary: Snapshot a machine
-      description: Captures a restorable machine image. Requires `snapshots:write`. The configured one-time fee is charged before dispatch. A conclusive pre-creation rejection is refunded; a timeout, 5xx, or malformed post-dispatch result may already have created the image and returns terminal 503 SNAPSHOT_OUTCOME_UNKNOWN without a blind refund/re-execution.
+      description: Managed machines only. External machines return 400 UNSUPPORTED_MACHINE_KIND because Coasty does not own their disks. For managed machines, captures a restorable image and requires `snapshots:write`. The configured one-time fee is charged before dispatch. A conclusive pre-creation rejection is refunded; a timeout, 5xx, or malformed post-dispatch result may already have created the image and returns terminal 503 SNAPSHOT_OUTCOME_UNKNOWN without a blind refund/re-execution.
       security:
       - apiKey: []
       - bearerAuth: []
@@ -668,6 +1096,8 @@ paths:
         '200':
           description: Snapshot created.
           headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
             X-Coasty-Request-Id:
               $ref: '#/components/headers/CoastyRequestId'
             X-Coasty-Key-Kind:
@@ -676,6 +1106,8 @@ paths:
               $ref: '#/components/headers/TestMode'
             X-Coasty-Idempotent-Replay:
               $ref: '#/components/headers/IdempotentReplay'
+            Idempotency-Replayed:
+              $ref: '#/components/headers/IdempotencyReplayed'
             Idempotency-Status:
               $ref: '#/components/headers/IdempotencyStatus'
             X-Credits-Charged:
@@ -727,6 +1159,7 @@ paths:
       - Machines
       operationId: getScreenshot
       summary: Capture a screenshot of the machine
+      description: Returns raw base64 pixels and decoded dimensions. External-machine responses also return a canonical frame_id; pass that value as the next mutation's precondition_frame_id so changed screens fail closed. A fresh screenshot is a read-only resynchronization operation and advances the external observation frame.
       security:
       - apiKey: []
       - bearerAuth: []
@@ -738,6 +1171,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ScreenshotResponse'
           headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
             X-Coasty-Request-Id:
               $ref: '#/components/headers/CoastyRequestId'
             X-Coasty-Key-Kind:
@@ -785,7 +1220,7 @@ paths:
       - Machines
       operationId: getConnectionDetails
       summary: Get SSH key + VNC password (HIGH-RISK)
-      description: 'Returns plaintext credentials. Gated by `connection:read` scope. Response is `Cache-Control: no-store`. Store credentials in a secrets manager — Coasty cannot re-issue them; rotate by terminating + reprovisioning.'
+      description: 'Managed machines only. External machines return 409 INVALID_STATE because Coasty never issues SSH, VNC, WebSocket, or browser-debug credentials for caller-owned devices. For managed machines, returns plaintext credentials gated by `connection:read`; the response is `Cache-Control: no-store`. Store credentials in a secrets manager — Coasty cannot re-issue them; rotate by terminating + reprovisioning.'
       security:
       - apiKey: []
       - bearerAuth: []
@@ -797,6 +1232,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ConnectionDetailsFull'
           headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
             X-Coasty-Request-Id:
               $ref: '#/components/headers/CoastyRequestId'
             X-Coasty-Key-Kind:
@@ -844,7 +1281,7 @@ paths:
       - Machines
       operationId: executeAction
       summary: Execute a single action on the machine
-      description: 'Required scope varies by command: terminal_* → `terminal:exec`; file_* → `files:read|write`; browser_execute → `browser:execute`; everything else → `actions:exec`. See the ActionRequest command enum and /v1/models for current capabilities.'
+      description: 'Required scope varies by command: terminal_* → `terminal:exec`; file_* → `files:read|write`; browser_execute → `browser:execute`; everything else → `actions:exec`. See the ActionRequest command enum and /v1/models for current capabilities. For an external machine, capture a frame, plan against those pixels, and send its frame_id as precondition_frame_id. The driver revalidates the pixels immediately before input and atomically commits the result plus post-action observation. A stale frame fails closed with 409 FRAME_PRECONDITION_MISMATCH or a typed unsuccessful action result; never blindly reissue an input whose outcome is unknown. Successful fresh responses may include screenshot, frame_id, and observation_available=true. Idempotent replays never execute again and omit screenshot pixels while retaining frame_id.'
       security:
       - apiKey: []
       - bearerAuth: []
@@ -864,6 +1301,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ActionResultResponse'
           headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
             X-Coasty-Request-Id:
               $ref: '#/components/headers/CoastyRequestId'
             X-Coasty-Key-Kind:
@@ -872,6 +1311,8 @@ paths:
               $ref: '#/components/headers/TestMode'
             X-Coasty-Idempotent-Replay:
               $ref: '#/components/headers/IdempotentReplay'
+            Idempotency-Replayed:
+              $ref: '#/components/headers/IdempotencyReplayed'
             Idempotency-Status:
               $ref: '#/components/headers/IdempotencyStatus'
         '400':
@@ -921,7 +1362,7 @@ paths:
       - Machines
       operationId: executeBatch
       summary: Execute up to 50 sequential actions
-      description: 'Shell `&&`-style semantics: aborts on first failure when `stop_on_error=true` (default).'
+      description: 'Shell `&&`-style semantics: aborts on first failure when `stop_on_error=true` (default). External GUI control should normally use one action per observe→plan→act turn: every committed mutation creates a new frame_id, so a later coordinate action cannot safely be pre-bound to an unknown future frame. External batches fail closed when a step''s precondition is omitted or stale; they do not silently auto-bind future screen state.'
       security:
       - apiKey: []
       - bearerAuth: []
@@ -941,6 +1382,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/BatchActionResponse'
           headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
             X-Coasty-Request-Id:
               $ref: '#/components/headers/CoastyRequestId'
             X-Coasty-Key-Kind:
@@ -949,6 +1392,8 @@ paths:
               $ref: '#/components/headers/TestMode'
             X-Coasty-Idempotent-Replay:
               $ref: '#/components/headers/IdempotentReplay'
+            Idempotency-Replayed:
+              $ref: '#/components/headers/IdempotencyReplayed'
             Idempotency-Status:
               $ref: '#/components/headers/IdempotencyStatus'
         '400':
@@ -1021,6 +1466,7 @@ paths:
       - Machines
       operationId: browserOp
       summary: Browser convenience sub-API
+      description: Convenience mapping to the strict browser_* action commands. A mutating operation on an external machine requires precondition_frame_id; read-only state/DOM/screenshot operations may omit it.
       security:
       - apiKey: []
       - bearerAuth: []
@@ -1040,6 +1486,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ActionResultResponse'
           headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
             X-Coasty-Request-Id:
               $ref: '#/components/headers/CoastyRequestId'
             X-Coasty-Key-Kind:
@@ -1048,6 +1496,8 @@ paths:
               $ref: '#/components/headers/TestMode'
             X-Coasty-Idempotent-Replay:
               $ref: '#/components/headers/IdempotentReplay'
+            Idempotency-Replayed:
+              $ref: '#/components/headers/IdempotencyReplayed'
             Idempotency-Status:
               $ref: '#/components/headers/IdempotencyStatus'
         '400':
@@ -1093,7 +1543,7 @@ paths:
       - Machines
       operationId: terminalExec
       summary: Execute a shell command
-      description: Output truncated VM-side to 5000 chars. Hard cap 120s (Cloudflare edge timeout). Requires `terminal:exec` scope.
+      description: Output truncated VM-side to 5000 chars. Hard cap 120s (Cloudflare edge timeout). Requires `terminal:exec` scope. An external terminal execution is a mutation and requires precondition_frame_id; use the direct action surface for terminal_read if a read-only operation is needed.
       security:
       - apiKey: []
       - bearerAuth: []
@@ -1113,6 +1563,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ActionResultResponse'
           headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
             X-Coasty-Request-Id:
               $ref: '#/components/headers/CoastyRequestId'
             X-Coasty-Key-Kind:
@@ -1121,6 +1573,8 @@ paths:
               $ref: '#/components/headers/TestMode'
             X-Coasty-Idempotent-Replay:
               $ref: '#/components/headers/IdempotentReplay'
+            Idempotency-Replayed:
+              $ref: '#/components/headers/IdempotencyReplayed'
             Idempotency-Status:
               $ref: '#/components/headers/IdempotencyStatus'
         '400':
@@ -1184,7 +1638,7 @@ paths:
       - Machines
       operationId: filesOp
       summary: File operations sub-API
-      description: Read ops require `files:read`; mutating ops require `files:write`. Body capped at 50 MB.
+      description: Read ops require `files:read`; mutating ops require `files:write`. Body capped at 50 MB. Mutating external-machine file operations require precondition_frame_id; read-only operations may omit it.
       security:
       - apiKey: []
       - bearerAuth: []
@@ -1204,6 +1658,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/ActionResultResponse'
           headers:
+            X-Request-Id:
+              $ref: '#/components/headers/RequestId'
             X-Coasty-Request-Id:
               $ref: '#/components/headers/CoastyRequestId'
             X-Coasty-Key-Kind:
@@ -1212,6 +1668,8 @@ paths:
               $ref: '#/components/headers/TestMode'
             X-Coasty-Idempotent-Replay:
               $ref: '#/components/headers/IdempotentReplay'
+            Idempotency-Replayed:
+              $ref: '#/components/headers/IdempotencyReplayed'
             Idempotency-Status:
               $ref: '#/components/headers/IdempotencyStatus'
         '400':
@@ -1251,404 +1709,25 @@ paths:
       x-feature-flag: PUBLIC_MACHINES_API_ENABLED
       x-idempotency: reserve-and-replay
 components:
-  responses:
-    Unauthorized:
-      description: 'Missing, invalid, or revoked API key. Pass `X-API-Key: sk-coasty-live-...` (or test).'
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: INVALID_API_KEY
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    PayloadTooLarge:
-      description: The request body exceeds the endpoint limit.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: PAYLOAD_TOO_LARGE
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    RateLimited:
-      description: Rate or concurrency limit exceeded.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: RATE_LIMIT_EXCEEDED
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    Forbidden:
-      description: API key lacks the required scope or tier-feature is unavailable on the caller's plan.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: INSUFFICIENT_SCOPE
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    BadGateway:
-      description: An upstream dependency returned an invalid response.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: UPSTREAM_ERROR
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    ServerError:
-      description: Unexpected server error. Retry with exponential backoff.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: INTERNAL_ERROR
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    ServiceUnavailable:
-      description: A required service is temporarily unavailable.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: SERVICE_UNAVAILABLE
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    UnprocessableEntity:
-      description: The JSON shape is valid but one or more values violate the endpoint contract.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: VALIDATION_ERROR
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    NotFound:
-      description: Resource not found in this key's namespace.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: NOT_FOUND
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    GatewayTimeout:
-      description: An upstream dependency timed out.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: UPSTREAM_TIMEOUT
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    PaymentRequired:
-      description: Insufficient credits to perform the operation. Top up via /credits or upgrade subscription.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: INSUFFICIENT_CREDITS
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    BadRequest:
-      description: Invalid request body or parameters.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: VALIDATION_ERROR
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
-    Conflict:
-      description: The resource state conflicts with this operation.
-      headers:
-        X-Coasty-Request-Id:
-          $ref: '#/components/headers/CoastyRequestId'
-        Retry-After:
-          $ref: '#/components/headers/RetryAfter'
-        X-Credits-Charged:
-          $ref: '#/components/headers/CreditsCharged'
-        X-Credits-Refunded:
-          $ref: '#/components/headers/CreditsRefunded'
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiError'
-          example:
-            error:
-              code: CONFLICT
-              message: An error occurred. See `code` for details.
-              type: validation_error
-              request_id: req_a1b2c3d4e5f6
-              retryable: false
-              retry_with_same_idempotency_key: false
   schemas:
-    ProvisionResponse:
-      type: object
-      required:
-      - machine
-      - connection
-      - request_id
-      properties:
-        machine:
-          $ref: '#/components/schemas/MachineRecord'
-        connection:
-          $ref: '#/components/schemas/ConnectionDetailsRedacted'
-        request_id:
-          type: string
-    FilesOpRequest:
+    DirectRequiredDirectoryParameters:
       type: object
       additionalProperties: false
+      anyOf:
+      - required:
+        - path
+      - required:
+        - dirpath
+      description: Send path or dirpath. If both aliases are present, their strings must be identical.
       properties:
-        parameters:
-          type: object
-          additionalProperties: true
-          description: 'Op-specific params: {path} for read; {path, content} for write; etc.'
-    MachineRecord:
-      type: object
-      required:
-      - id
-      - display_name
-      - status
-      properties:
-        id:
+        path:
           type: string
-        display_name:
+          minLength: 1
+          maxLength: 4096
+        dirpath:
           type: string
-        status:
-          type: string
-          enum:
-          - creating
-          - provisioning
-          - starting
-          - running
-          - stopping
-          - stopped
-          - restarting
-          - suspended
-          - deleting
-          - terminated
-          - error
-        os_type:
-          type: string
-          enum:
-          - linux
-          - windows
-          default: linux
-        desktop_enabled:
-          type: boolean
-          default: false
-        cpu_cores:
-          type: integer
-          default: 1
-        memory_gb:
-          type: number
-          default: 2
-        storage_gb:
-          type: integer
-          default: 10
-        public_ip:
-          type:
-          - string
-          - 'null'
-        is_test:
-          type: boolean
-          default: false
-        created_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        started_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        auto_destroy_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        ttl_minutes:
-          type:
-          - integer
-          - 'null'
-        metadata:
-          type: object
-          additionalProperties:
-            type: string
-        billing:
-          $ref: '#/components/schemas/MachineBilling'
-          description: How this API-provisioned machine is metered (omitted for non-API machines).
+          minLength: 1
+          maxLength: 4096
     LifecycleResponse:
       type: object
       required:
@@ -1665,111 +1744,128 @@ components:
           type: string
         request_id:
           type: string
-    MachinePricingResponse:
+    ApiError:
       type: object
       required:
-      - pricing
-      - request_id
+      - error
       properties:
-        pricing:
+        error:
           type: object
-          additionalProperties: true
-          description: The live machine runtime, one-time, billing granularity, and TTL rate card.
-        request_id:
-          type: string
-    BrowserOpRequest:
+          required:
+          - code
+          - message
+          - type
+          - retryable
+          - retry_with_same_idempotency_key
+          - request_id
+          properties:
+            code:
+              type: string
+              description: Stable machine-readable error code (e.g. INVALID_API_KEY, INSUFFICIENT_CREDITS).
+              examples:
+              - INVALID_API_KEY
+            message:
+              type: string
+              description: Human-readable explanation. May include suggestions or examples.
+            type:
+              type: string
+              enum:
+              - auth_error
+              - validation_error
+              - rate_limit_error
+              - billing_error
+              - not_found_error
+              - state_error
+              - server_error
+              - client_error
+            request_id:
+              type: string
+              description: Server-assigned correlation ID. Include in support requests.
+              examples:
+              - req_a1b2c3d4e5f6
+            suggestion:
+              type: string
+              description: A concrete next step, auto-filled per code. LLM agents can act on it to self-recover.
+            retryable:
+              type: boolean
+              description: 'true when retrying the same call may succeed (transient server failures + back-pressure: INTERNAL_ERROR, DB_UNAVAILABLE, SERVICE_UNAVAILABLE, UPSTREAM_*, PREDICTION_FAILED, *_FAILED, RATE_LIMITED, TOO_MANY_RUNS, IDEMPOTENCY_IN_FLIGHT, ...). false for deterministic client errors. A CUA BILLING_UNAVAILABLE caused by refund uncertainty is false unless the server confirmed a shared recovery checkpoint. Present on EVERY error envelope, including gateway/5xx/timeout paths.'
+            retry_with_same_idempotency_key:
+              type: boolean
+              description: 'true only when the concrete response permits replay and the original request already carried the key. This covers the exact 18 generic reserve-and-replay operations plus the separate account-scoped external-enrollment replay domain. Reuse that SAME key with its identical bound inputs. A retryable error alone does not make an operation idempotent, and a key cannot be added retroactively. For CUA refund uncertainty this is true only after an exact shared checkpoint was confirmed; unkeyed or uncheckpointed responses are false and must not be retried automatically. A confirmed refunded failure sets this false even when retryable remains true: use a new key, because the old debit is compensated and wallet-guarded by IDEMPOTENCY_ALREADY_REFUNDED. false for deterministic errors.'
+            retry_after:
+              type:
+              - integer
+              - 'null'
+              description: Seconds to wait before retrying (accompanies retryable:true back-pressure codes; mirrors the Retry-After header).
+            rule:
+              type: string
+              enum:
+              - max_actions
+              - structured_action
+              - allowed_actions
+              - blocked_actions
+              - blocked_keys
+              - block_window_close
+              - coordinate_bounds
+              description: Present on ACTION_POLICY_VIOLATION errors and identifies the enforced policy rule.
+            action_index:
+              type: integer
+              minimum: 0
+              description: Zero-based proposed-action index on ACTION_POLICY_VIOLATION when the rule is attributable to one action; omitted for batch-level rules such as max_actions.
+            action_type:
+              type: string
+              description: Proposed action type on ACTION_POLICY_VIOLATION when attributable to one action; omitted for batch-level or uninspectable values.
+            examples:
+              type: object
+              additionalProperties: true
+              description: 'Machine-readable limits for self-correction. On PAYLOAD_TOO_LARGE / INVALID_SCREENSHOT: { max_base64_bytes: 10485760 (legacy name), max_base64_chars: 10485760, max_request_body_bytes: 15728640, max_mb: 10, min_base64_chars: 100, formats: ["png","jpeg"] }.'
+    DirectTabIndexParameters:
       type: object
       additionalProperties: false
+      not:
+        required:
+        - tab_index
+        - index
       properties:
-        parameters:
-          type: object
-          additionalProperties: true
-        timeout_ms:
-          type:
-          - integer
-          - 'null'
-          minimum: 1000
-          maximum: 120000
-    BatchActionResponse:
+        tab_index:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        index:
+          type: integer
+          minimum: 0
+          maximum: 10000
+    DirectDirectoryParameters:
+      type: object
+      additionalProperties: false
+      description: Defaults to '.'. If path and dirpath are both present, their strings must be identical.
+      properties:
+        path:
+          type: string
+          minLength: 1
+          maxLength: 4096
+        dirpath:
+          type: string
+          minLength: 1
+          maxLength: 4096
+    BatchActionRequest:
       type: object
       required:
-      - machine_id
-      - results
-      - completed_count
-      - failed_count
-      - request_id
+      - steps
+      additionalProperties: false
       properties:
-        machine_id:
-          type: string
-        results:
+        steps:
           type: array
+          minItems: 1
+          maxItems: 50
           items:
-            $ref: '#/components/schemas/ActionResultResponse'
-        completed_count:
-          type: integer
-        failed_count:
-          type: integer
-        aborted:
+            $ref: '#/components/schemas/ActionRequest'
+        stop_on_error:
           type: boolean
-          default: false
-        request_id:
-          type: string
-    GetMachineResponse:
-      type: object
-      required:
-      - machine
-      - request_id
-      properties:
-        machine:
-          $ref: '#/components/schemas/MachineRecord'
-        request_id:
-          type: string
-    ConnectionDetailsRedacted:
-      type: object
-      properties:
-        public_ip:
-          type:
-          - string
-          - 'null'
-        ssh_port:
-          type:
-          - integer
-          - 'null'
-        ssh_username:
-          type:
-          - string
-          - 'null'
-        vnc_port:
-          type:
-          - integer
-          - 'null'
-        websocket_port:
-          type:
-          - integer
-          - 'null'
-        has_ssh_key:
-          type: boolean
-          default: false
-        has_vnc_password:
-          type: boolean
-          default: false
-    BillingActiveResponse:
-      type: object
-      required:
-      - active
-      - current_run_rate_cents_per_hour
-      - request_id
-      properties:
-        active:
-          type: array
-          items:
-            $ref: '#/components/schemas/BillingActiveItem'
-          description: Every API-billed machine currently metering (running OR stopped). Empty for test-mode keys.
-        current_run_rate_cents_per_hour:
-          type: integer
-          description: Summed instantaneous burn rate across the active list — total cents/hour right now.
-        request_id:
-          type: string
+          default: true
+        action_policy:
+          $ref: '#/components/schemas/ActionPolicy'
+          description: Checked atomically against the complete batch before step one. Individual steps may also carry their own action_policy.
     SnapshotResponse:
       type: object
       required:
@@ -1793,6 +1889,620 @@ components:
           type: integer
         request_id:
           type: string
+    DirectMoveParameters:
+      type: object
+      required:
+      - x
+      - y
+      additionalProperties: false
+      properties:
+        x:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        y:
+          type: integer
+          minimum: 0
+          maximum: 100000
+    DirectKeyPressParameters:
+      type: object
+      additionalProperties: false
+      oneOf:
+      - required:
+        - key
+      - required:
+        - keys
+      properties:
+        key:
+          type: string
+          minLength: 1
+          maxLength: 64
+        keys:
+          type: array
+          minItems: 1
+          maxItems: 100
+          items:
+            type: string
+            minLength: 1
+            maxLength: 64
+    DirectClickParameters:
+      type: object
+      required:
+      - x
+      - y
+      additionalProperties: false
+      properties:
+        x:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        y:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        button:
+          type: string
+          enum:
+          - left
+          - right
+          - middle
+          default: left
+        clicks:
+          type: integer
+          minimum: 1
+          maximum: 3
+          default: 1
+    DirectWindowTargetParameters:
+      type: object
+      additionalProperties: false
+      not:
+        required:
+        - window_title
+        - window_id
+      properties:
+        window_title:
+          type: string
+          minLength: 1
+          maxLength: 512
+        window_id:
+          type: string
+          minLength: 1
+          maxLength: 128
+    ScreenshotResponse:
+      type: object
+      required:
+      - machine_id
+      - image_b64
+      - mime_type
+      - width
+      - height
+      - captured_at
+      - request_id
+      properties:
+        machine_id:
+          type: string
+        image_b64:
+          type: string
+          description: 'Base64-encoded screenshot (no data: prefix).'
+        mime_type:
+          type: string
+          default: image/jpeg
+        width:
+          type: integer
+        height:
+          type: integer
+        captured_at:
+          type: string
+          format: date-time
+        frame_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: Opaque external-machine observation identity. Bind the next external action to this value with precondition_frame_id; null for managed machines.
+        request_id:
+          type: string
+    DirectScrollParameters:
+      type: object
+      additionalProperties: false
+      oneOf:
+      - required:
+        - clicks
+      - required:
+        - amount
+      dependentRequired:
+        x:
+        - y
+        y:
+        - x
+      properties:
+        clicks:
+          type: integer
+          minimum: -100
+          maximum: 100
+          not:
+            const: 0
+        amount:
+          type: integer
+          minimum: 1
+          maximum: 100
+        direction:
+          type: string
+          enum:
+          - vertical
+          - horizontal
+          - up
+          - down
+          - left
+          - right
+          default: vertical
+        x:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        y:
+          type: integer
+          minimum: 0
+          maximum: 100000
+    ProvisionResponse:
+      type: object
+      required:
+      - machine
+      - connection
+      - request_id
+      properties:
+        machine:
+          $ref: '#/components/schemas/MachineRecord'
+        connection:
+          $ref: '#/components/schemas/ConnectionDetailsRedacted'
+        request_id:
+          type: string
+    MachineCapability:
+      type: string
+      enum:
+      - screenshot
+      - mouse
+      - keyboard
+      - scroll
+      - terminal
+      - files
+      - browser
+      description: A capability the machine driver can execute. External-machine runs are dispatched only when the enrolled driver advertises every capability required by the task.
+    ExternalMachineEnrollRequest:
+      type: object
+      required:
+      - display_name
+      - platform
+      - capabilities
+      additionalProperties: false
+      properties:
+        display_name:
+          type: string
+          minLength: 1
+          maxLength: 64
+        protocol_version:
+          type: string
+          const: '1'
+          default: '1'
+          description: Driver protocol major version. Unsupported major versions fail before enrollment.
+        capabilities:
+          type: array
+          minItems: 1
+          maxItems: 7
+          uniqueItems: true
+          contains:
+            const: screenshot
+          minContains: 1
+          maxContains: 1
+          items:
+            $ref: '#/components/schemas/MachineCapability'
+        platform:
+          type: string
+          enum:
+          - windows
+          - macos
+          - linux
+          - other
+        screen_width:
+          type:
+          - integer
+          - 'null'
+          minimum: 320
+          maximum: 3840
+        screen_height:
+          type:
+          - integer
+          - 'null'
+          minimum: 240
+          maximum: 2160
+          description: screen_width and screen_height must be supplied together when either is present.
+        metadata:
+          type: object
+          maxProperties: 16
+          propertyNames:
+            maxLength: 64
+          additionalProperties:
+            type: string
+            maxLength: 256
+          description: Non-secret labels only. Never put device credentials or screenshot data in metadata.
+    ExternalMachineObservationRequest:
+      type: object
+      required:
+      - sequence
+      - screenshot
+      - media_type
+      additionalProperties: false
+      allOf:
+      - if:
+          required:
+          - width
+        then:
+          required:
+          - height
+      - if:
+          required:
+          - height
+        then:
+          required:
+          - width
+      - if:
+          required:
+          - media_type
+          properties:
+            media_type:
+              const: image/png
+        then:
+          properties:
+            screenshot:
+              pattern: ^(?:[A-Za-z0-9+/=]+|data:image/png;base64,[A-Za-z0-9+/=]+)$
+      - if:
+          required:
+          - media_type
+          properties:
+            media_type:
+              const: image/jpeg
+        then:
+          properties:
+            screenshot:
+              pattern: ^(?:[A-Za-z0-9+/=]+|data:image/jpeg;base64,[A-Za-z0-9+/=]+)$
+      properties:
+        sequence:
+          type: integer
+          minimum: 1
+        media_type:
+          type: string
+          enum:
+          - image/png
+          - image/jpeg
+        screenshot:
+          $ref: '#/components/schemas/ScreenshotBase64'
+          description: Base64 PNG/JPEG bytes, either raw or in a data URI that exactly matches media_type. The 100 through 10,485,760 character bounds apply to the base64 payload after the optional prefix. The server decodes the image, verifies media type/dimensions/digest, strips metadata, and never trusts declarations alone.
+        sha256:
+          type:
+          - string
+          - 'null'
+          pattern: ^[0-9a-f]{64}$
+          description: Optional SHA-256 of the submitted decoded image bytes, before metadata stripping and server normalization.
+        width:
+          type:
+          - integer
+          - 'null'
+          minimum: 320
+          maximum: 3840
+        height:
+          type:
+          - integer
+          - 'null'
+          minimum: 240
+          maximum: 2160
+          description: width and height must be supplied together when either is present.
+    UpdateMachineRequest:
+      type: object
+      required:
+      - ttl_minutes
+      additionalProperties: false
+      properties:
+        ttl_minutes:
+          type: integer
+          minimum: 0
+          maximum: 10080
+          description: 0 clears resource expiry; otherwise the value must be between 5 and 10080. Managed expiry destroys infrastructure; external expiry only revokes and deletes the Coasty registration, leaving caller-owned host/storage untouched.
+          oneOf:
+          - const: 0
+          - minimum: 5
+            maximum: 10080
+    DirectListDownloadsParameters:
+      type: object
+      additionalProperties: false
+      description: Directory defaults to '.'. If path and dirpath are both present, their strings must be identical.
+      properties:
+        path:
+          type: string
+          minLength: 1
+          maxLength: 4096
+        dirpath:
+          type: string
+          minLength: 1
+          maxLength: 4096
+        recursive:
+          type: boolean
+          default: false
+        max_files:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          default: 100
+    BillingActiveResponse:
+      type: object
+      required:
+      - active
+      - current_run_rate_cents_per_hour
+      - request_id
+      properties:
+        active:
+          type: array
+          items:
+            $ref: '#/components/schemas/BillingActiveItem'
+          description: Every API-billed machine currently metering (running OR stopped). Empty for test-mode keys.
+        current_run_rate_cents_per_hour:
+          type: integer
+          description: Summed instantaneous burn rate across the active list — total cents/hour right now.
+        request_id:
+          type: string
+    DirectBrowserExecuteParameters:
+      type: object
+      additionalProperties: false
+      oneOf:
+      - required:
+        - script
+      - required:
+        - code
+      properties:
+        script:
+          type: string
+          minLength: 1
+          maxLength: 100000
+        code:
+          type: string
+          minLength: 1
+          maxLength: 100000
+    ExternalMachineObservationResponse:
+      type: object
+      required:
+      - machine_id
+      - frame_id
+      - sequence
+      - sha256
+      - width
+      - height
+      - received_at
+      - fencing_token
+      - request_id
+      additionalProperties: false
+      properties:
+        machine_id:
+          type: string
+        frame_id:
+          type: string
+          format: uuid
+        sequence:
+          type: integer
+        sha256:
+          type: string
+          pattern: ^[0-9a-f]{64}$
+          description: SHA-256 of the server-normalized PNG/JPEG bytes. Metadata removal and re-encoding mean this may differ from the request sha256.
+        width:
+          type: integer
+        height:
+          type: integer
+        received_at:
+          type: string
+          format: date-time
+        fencing_token:
+          type: integer
+          minimum: 1
+        request_id:
+          type: string
+    ListMachinesResponse:
+      type: object
+      required:
+      - data
+      - request_id
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/MachineRecord'
+        has_more:
+          type: boolean
+          default: false
+        request_id:
+          type: string
+    MachineProxyView:
+      type: object
+      description: Read-side proxy state. Never contains the credential -- a masked username and a fingerprint only.
+      properties:
+        mode:
+          type: string
+          enum:
+          - none
+          - managed
+          - custom
+        scheme:
+          type:
+          - string
+          - 'null'
+        host:
+          type:
+          - string
+          - 'null'
+        port:
+          type:
+          - integer
+          - 'null'
+        status:
+          type:
+          - string
+          - 'null'
+          enum:
+          - pending
+          - applying
+          - active
+          - failed
+          - released
+        authenticated:
+          type:
+          - boolean
+          - 'null'
+        username_masked:
+          type:
+          - string
+          - 'null'
+        credential_fingerprint:
+          type:
+          - string
+          - 'null'
+        egress_ip:
+          type:
+          - string
+          - 'null'
+          description: The address the machine was observed leaving from, once proven.
+        verified_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        error:
+          type:
+          - string
+          - 'null'
+    ExternalMachineEnrollResponse:
+      type: object
+      required:
+      - machine
+      - device_token
+      - fencing_token
+      - request_id
+      additionalProperties: false
+      properties:
+        machine:
+          $ref: '#/components/schemas/MachineRecord'
+        device_token:
+          type: string
+          writeOnly: true
+          minLength: 32
+          description: Machine-scoped bearer credential. It is returned only by the initial enrollment or an exact Idempotency-Key replay while the 24-hour recovery secret remains available; it is never present in list/get responses and must be stored in the driver's secret store.
+        fencing_token:
+          type: integer
+          minimum: 1
+          description: Initial device lease generation. Send it on heartbeat and command-result calls.
+        request_id:
+          type: string
+    ProxyRequest:
+      type: object
+      additionalProperties: false
+      description: Route a machine's outbound traffic through a proxy. 'managed' uses Coasty's residential upstream and takes no other fields; 'custom' requires host and port. Omit the object entirely for no proxy.
+      properties:
+        mode:
+          type: string
+          enum:
+          - none
+          - managed
+          - custom
+          default: none
+        session:
+          type:
+          - string
+          - 'null'
+          enum:
+          - sticky
+          - rotating
+          description: Managed mode only. 'sticky' (default) holds one exit IP for the machine's lifetime.
+        scheme:
+          type:
+          - string
+          - 'null'
+          enum:
+          - http
+          - https
+          - socks5
+          description: 'Custom mode only. How to reach YOUR PROXY, not what it can carry: an http proxy serves HTTPS sites fine through CONNECT. Use https only when the proxy itself terminates TLS. Defaults to http.'
+        host:
+          type:
+          - string
+          - 'null'
+          maxLength: 253
+          description: Custom mode only. Must be a public address; loopback, link-local and private ranges are refused.
+        port:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 65535
+        username:
+          type:
+          - string
+          - 'null'
+          maxLength: 512
+        password:
+          type:
+          - string
+          - 'null'
+          maxLength: 512
+          description: Write-only. Encrypted at rest and never returned by any endpoint.
+    DirectMoveWindowParameters:
+      type: object
+      required:
+      - x
+      - y
+      additionalProperties: false
+      not:
+        required:
+        - window_title
+        - window_id
+      dependentRequired:
+        width:
+        - height
+        height:
+        - width
+      properties:
+        window_title:
+          type: string
+          minLength: 1
+          maxLength: 512
+        window_id:
+          type: string
+          minLength: 1
+          maxLength: 128
+        x:
+          type: integer
+          minimum: -100000
+          maximum: 100000
+        y:
+          type: integer
+          minimum: -100000
+          maximum: 100000
+        width:
+          type: integer
+          minimum: 1
+          maximum: 100000
+        height:
+          type: integer
+          minimum: 1
+          maximum: 100000
+    DirectTypeParameters:
+      type: object
+      required:
+      - text
+      additionalProperties: false
+      properties:
+        text:
+          type: string
+          maxLength: 1000000
+        interval:
+          type: number
+          minimum: 0
+          maximum: 10
     BillingActiveItem:
       type: object
       required:
@@ -1854,6 +2564,663 @@ components:
           type:
           - integer
           - 'null'
+    ConnectionDetailsRedacted:
+      type: object
+      properties:
+        public_ip:
+          type:
+          - string
+          - 'null'
+        ssh_port:
+          type:
+          - integer
+          - 'null'
+        ssh_username:
+          type:
+          - string
+          - 'null'
+        vnc_port:
+          type:
+          - integer
+          - 'null'
+        websocket_port:
+          type:
+          - integer
+          - 'null'
+        has_ssh_key:
+          type: boolean
+          default: false
+        has_vnc_password:
+          type: boolean
+          default: false
+    ActionPolicy:
+      type: object
+      additionalProperties: false
+      description: Opt-in, fail-closed post-model action enforcement. The complete normalized batch is checked atomically before actions are returned or dispatched. allowed_actions and blocked_actions cannot overlap. Prediction, Session, and Parse surfaces use prediction action names such as type_text; direct Machine routes use command names such as type. Task, Workflow, and Schedule policies are create-time controls inherited across execution and recovery.
+      properties:
+        allowed_actions:
+          type:
+          - array
+          - 'null'
+          minItems: 1
+          maxItems: 128
+          uniqueItems: true
+          items:
+            type: string
+            pattern: ^\s*[A-Za-z][A-Za-z0-9_:-]{0,63}\s*$
+          description: Optional action allowlist. Values are trimmed and lowercased before validation; duplicates after normalization are rejected. Terminal done/fail/awaiting_human signals remain allowed.
+        blocked_actions:
+          type: array
+          maxItems: 128
+          uniqueItems: true
+          default: []
+          items:
+            type: string
+            pattern: ^\s*[A-Za-z][A-Za-z0-9_:-]{0,63}\s*$
+          description: Action denylist. Values are trimmed and lowercased before validation; duplicates after normalization are rejected.
+        blocked_keys:
+          type: array
+          maxItems: 128
+          uniqueItems: true
+          default: []
+          items:
+            type: string
+            pattern: ^\s*[A-Za-z0-9_+\-=\[\]\\;',./`]{1,64}\s*$
+          description: Keys forbidden in key_press, key_combo, and modifier-bearing actions. Values are trimmed and lowercased; duplicates after normalization are rejected; esc aliases escape.
+        block_window_close:
+          type: boolean
+          default: false
+          description: Block explicit close commands and common Alt+F4, Ctrl/Cmd+W, and Cmd+Q shortcuts.
+        max_actions:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 10000
+          description: Maximum number of actions admitted in one prediction/session step, parsed action batch, or direct Machine batch.
+        coordinate_bounds:
+          anyOf:
+          - $ref: '#/components/schemas/CoordinateBounds'
+          - type: 'null'
+    DirectRequiredTabIndexParameters:
+      type: object
+      additionalProperties: false
+      oneOf:
+      - required:
+        - tab_index
+      - required:
+        - index
+      properties:
+        tab_index:
+          type: integer
+          minimum: 0
+          maximum: 10000
+        index:
+          type: integer
+          minimum: 0
+          maximum: 10000
+    DirectBrowserClickParameters:
+      type: object
+      additionalProperties: false
+      oneOf:
+      - required:
+        - selector
+      - required:
+        - text
+      - required:
+        - x
+        - y
+      dependentRequired:
+        x:
+        - y
+        y:
+        - x
+      properties:
+        selector:
+          type: string
+          minLength: 1
+          maxLength: 4096
+        text:
+          type: string
+          minLength: 1
+          maxLength: 4096
+        x:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        y:
+          type: integer
+          minimum: 0
+          maximum: 100000
+    DirectArrangeWindowsParameters:
+      type: object
+      additionalProperties: false
+      properties:
+        arrangement:
+          type: string
+          enum:
+          - tile
+          - cascade
+          - minimize_all
+          - show_desktop
+          - restore_all
+          default: tile
+    FilesOpRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        parameters:
+          type: object
+          additionalProperties: true
+          description: 'Op-specific params: {path} for read; {path, content} for write; etc.'
+        precondition_frame_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: Required for mutating external-machine file operations; optional for reads.
+    CoordinateBounds:
+      type: object
+      required:
+      - max_x
+      - max_y
+      additionalProperties: false
+      description: Inclusive coordinate rectangle in the request screenshot's pixel space.
+      properties:
+        min_x:
+          type: integer
+          minimum: 0
+          maximum: 3840
+          default: 0
+        min_y:
+          type: integer
+          minimum: 0
+          maximum: 2160
+          default: 0
+        max_x:
+          type: integer
+          minimum: 0
+          maximum: 3840
+        max_y:
+          type: integer
+          minimum: 0
+          maximum: 2160
+    ExternalMachineHeartbeatResponse:
+      type: object
+      required:
+      - machine_id
+      - connection_status
+      - last_seen_at
+      - fencing_token
+      - last_sequence
+      - last_frame_id
+      - request_id
+      additionalProperties: false
+      properties:
+        machine_id:
+          type: string
+        connection_status:
+          type: string
+          const: connected
+        last_seen_at:
+          type: string
+          format: date-time
+        fencing_token:
+          type: integer
+          minimum: 1
+        last_sequence:
+          type: integer
+          minimum: 0
+          description: Authoritative last accepted observation sequence. A restarted driver submits last_sequence + 1.
+        last_frame_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: Authoritative last accepted frame, or null before the first observation.
+        request_id:
+          type: string
+    ExternalMachineCommandEnvelope:
+      type: object
+      required:
+      - id
+      - cursor
+      - protocol_version
+      - command
+      - parameters
+      - deadline_at
+      - fencing_token
+      - precondition_frame_id
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        cursor:
+          type: integer
+          minimum: 1
+        protocol_version:
+          type: string
+          const: '1'
+        command:
+          type: string
+          enum:
+          - screenshot
+          - detect_elements
+          - ocr
+          - click
+          - double_click
+          - click_with_modifiers
+          - drag
+          - move
+          - list_windows
+          - switch_to_window
+          - close_window
+          - minimize_window
+          - maximize_window
+          - restore_window
+          - arrange_windows
+          - move_window
+          - type
+          - key_press
+          - key_combo
+          - scroll
+          - terminal_connect
+          - terminal_execute
+          - terminal_read
+          - terminal_type
+          - terminal_clear
+          - terminal_close
+          - execute_command
+          - execute_terminal_command
+          - file_read
+          - file_exists
+          - directory_list
+          - file_write
+          - file_edit
+          - file_append
+          - file_delete
+          - directory_delete
+          - file_download
+          - file_list_downloads
+          - file_upload
+          - browser_open
+          - browser_connect
+          - browser_navigate
+          - browser_click
+          - browser_type
+          - browser_get_dom
+          - browser_get_clickables
+          - browser_state
+          - browser_info
+          - browser_get_context
+          - browser_scroll
+          - browser_close
+          - browser_screenshot
+          - browser_wait
+          - browser_list_tabs
+          - browser_open_tab
+          - browser_close_tab
+          - browser_switch_tab
+          - browser_execute
+          description: Canonical, allowlisted device-plane command. Owner actions and internal Task/Workflow CUA execution share this transport. Drivers must implement only the capabilities they advertise; the bundled reference driver intentionally implements the narrower screenshot/mouse/keyboard/scroll subset. raw_code, done, and fail are never sent to a device.
+        parameters:
+          type: object
+          additionalProperties: true
+          description: Command-specific parameters already validated against the canonical ActionRequest schema before dispatch. Drivers must still validate the shape for command and their advertised capabilities before local execution.
+        run_id:
+          type:
+          - string
+          - 'null'
+        deadline_at:
+          type: string
+          format: date-time
+        fencing_token:
+          type: integer
+          minimum: 1
+          description: Lease generation. Results with an older or mismatched generation are rejected.
+        precondition_frame_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: The exact frame on which the action was planned. Do not execute after the visible screen has changed.
+    DirectEmptyParameters:
+      type: object
+      maxProperties: 0
+      additionalProperties: false
+    ExternalMachineCommandResultRequest:
+      type: object
+      required:
+      - fencing_token
+      - precondition_frame_id
+      - success
+      additionalProperties: false
+      allOf:
+      - if:
+          required:
+          - success
+          properties:
+            success:
+              const: true
+        then:
+          properties:
+            error:
+              type: 'null'
+        else:
+          required:
+          - error
+          properties:
+            error:
+              type: string
+              minLength: 1
+              maxLength: 2048
+              pattern: \S
+      properties:
+        fencing_token:
+          type: integer
+          minimum: 1
+        precondition_frame_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: Must exactly echo the command envelope's precondition_frame_id, including null. A mismatch is 409 FRAME_PRECONDITION_MISMATCH.
+        success:
+          type: boolean
+        result:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+        error:
+          type:
+          - string
+          - 'null'
+          maxLength: 2048
+        observation:
+          anyOf:
+          - allOf:
+            - $ref: '#/components/schemas/ExternalMachineObservationRequest'
+            description: Optional post-action frame, atomically accepted with the command result.
+          - type: 'null'
+    DirectTerminalSessionParameters:
+      type: object
+      additionalProperties: false
+      properties:
+        session_id:
+          type: string
+          minLength: 1
+          maxLength: 128
+    MachinePricingResponse:
+      type: object
+      required:
+      - pricing
+      - request_id
+      additionalProperties: false
+      properties:
+        pricing:
+          type: object
+          required:
+          - currency
+          - credit_usd_cents
+          - runtime
+          - one_time
+          - eligibility_gates
+          - external_machines
+          - billing_granularity
+          - billed_to
+          - model
+          - insufficient_funds_behavior
+          - ttl
+          additionalProperties: false
+          description: The live managed-machine and external-machine rate card.
+          properties:
+            currency:
+              type: string
+              const: usd
+            credit_usd_cents:
+              type: integer
+              minimum: 1
+            runtime:
+              type: object
+              additionalProperties: true
+            one_time:
+              type: object
+              additionalProperties: true
+            eligibility_gates:
+              type: object
+              required:
+              - provision_minimum_wallet_balance_credits
+              - provision_minimum_wallet_balance_cents
+              - provision_minimum_wallet_balance_usd
+              - note
+              additionalProperties: false
+              properties:
+                provision_minimum_wallet_balance_credits:
+                  type: integer
+                  minimum: 0
+                provision_minimum_wallet_balance_cents:
+                  type: integer
+                  minimum: 0
+                provision_minimum_wallet_balance_usd:
+                  type: number
+                  minimum: 0
+                note:
+                  type: string
+                  const: Eligibility check only; provisioning does not debit this amount.
+            external_machines:
+              type: object
+              required:
+              - enrollment_credits
+              - runtime_credits_per_hour
+              - direct_action_credits
+              - frame_transport_credits
+              - task_and_workflow_steps
+              - note
+              additionalProperties: false
+              properties:
+                enrollment_credits:
+                  type: integer
+                  const: 0
+                runtime_credits_per_hour:
+                  type: integer
+                  const: 0
+                direct_action_credits:
+                  type: integer
+                  const: 0
+                frame_transport_credits:
+                  type: integer
+                  const: 0
+                task_and_workflow_steps:
+                  type: string
+                  const: 'managed key: charged at the selected CUA version''s normal per-step rate; BYOK: zero Coasty platform credits'
+                note:
+                  type: string
+                  description: Caller-owned compute is not provisioned or metered. Task/Workflow model inference uses the managed step meter only when Coasty supplies the model. BYOK debits zero Coasty platform credits; live-key execution is provider-billed. Managed-mode test execution remains deterministic sandbox and makes no provider call; test-auth BYOK intent returns 422 LLM_PROVIDER_UNSUPPORTED before execution.
+            billing_granularity:
+              type: string
+            billed_to:
+              type: string
+            model:
+              type: string
+            insufficient_funds_behavior:
+              type: string
+            ttl:
+              type: object
+              additionalProperties: true
+        request_id:
+          type: string
+    DirectBrowserScreenshotParameters:
+      type: object
+      additionalProperties: false
+      properties:
+        selector:
+          type: string
+          minLength: 1
+          maxLength: 4096
+    DirectDoubleClickParameters:
+      type: object
+      required:
+      - x
+      - y
+      additionalProperties: false
+      properties:
+        x:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        y:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        button:
+          type: string
+          enum:
+          - left
+          - right
+          - middle
+          default: left
+    DirectTerminalConnectParameters:
+      type: object
+      additionalProperties: false
+      properties:
+        cwd:
+          type: string
+          minLength: 1
+          maxLength: 4096
+    DirectFileContentParameters:
+      type: object
+      required:
+      - content
+      additionalProperties: false
+      anyOf:
+      - required:
+        - path
+      - required:
+        - filepath
+      description: Send path or filepath. If both aliases are present, their strings must be identical.
+      properties:
+        path:
+          type: string
+          minLength: 1
+          maxLength: 4096
+        filepath:
+          type: string
+          minLength: 1
+          maxLength: 4096
+        content:
+          type: string
+    DirectBrowserUrlParameters:
+      type: object
+      required:
+      - url
+      additionalProperties: false
+      properties:
+        url:
+          type: string
+          minLength: 1
+          maxLength: 8192
+    DirectKeyComboParameters:
+      type: object
+      required:
+      - keys
+      additionalProperties: false
+      properties:
+        keys:
+          type: array
+          minItems: 2
+          maxItems: 8
+          items:
+            type: string
+            minLength: 1
+            maxLength: 64
+    DirectBrowserTypeParameters:
+      type: object
+      required:
+      - text
+      additionalProperties: false
+      properties:
+        text:
+          type: string
+          maxLength: 1000000
+        selector:
+          type: string
+          minLength: 1
+          maxLength: 4096
+        clear:
+          type: boolean
+          default: true
+    DirectBrowserScrollParameters:
+      type: object
+      additionalProperties: false
+      properties:
+        direction:
+          type: string
+          enum:
+          - up
+          - down
+          - left
+          - right
+          default: down
+        amount:
+          type: integer
+          minimum: 1
+          maximum: 100000
+          default: 500
+    DirectDragParameters:
+      type: object
+      required:
+      - x1
+      - y1
+      - x2
+      - y2
+      additionalProperties: false
+      properties:
+        x1:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        y1:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        x2:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        y2:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        button:
+          type: string
+          enum:
+          - left
+          - right
+          - middle
+          default: left
+        hold_keys:
+          type: array
+          maxItems: 8
+          items:
+            type: string
+            minLength: 1
+            maxLength: 64
+          default: []
+    HealthResponse:
+      type: object
+      required:
+      - status
+      properties:
+        status:
+          type: string
+          enum:
+          - ok
+        api_version:
+          type: string
+        service:
+          type: string
     MachineBilling:
       type: object
       description: Per-machine runtime billing state. 1 credit = 1 cent.
@@ -1865,10 +3232,10 @@ components:
           default: api_wallet
         running_credits_per_hour:
           type: integer
-          description: Rate while running (5 Linux / 9 Windows).
+          description: Effective API-wallet rate while this machine is running; discover the deployed rate card at GET /v1/machines/pricing.
         stopped_credits_per_hour:
           type: integer
-          description: Rate while stopped/suspended (storage only, 1).
+          description: Effective API-wallet storage rate while stopped/suspended; discover the deployed rate card at GET /v1/machines/pricing.
         accrued_cents:
           type: integer
           description: Credits owed for the current metering segment so far.
@@ -1896,75 +3263,6 @@ components:
           type:
           - integer
           - 'null'
-    ActionRequest:
-      type: object
-      required:
-      - command
-      additionalProperties: false
-      properties:
-        command:
-          type: string
-          enum:
-          - screenshot
-          - click
-          - double_click
-          - click_with_modifiers
-          - type
-          - key_press
-          - key_combo
-          - scroll
-          - drag
-          - list_windows
-          - switch_to_window
-          - close_window
-          - minimize_window
-          - maximize_window
-          - restore_window
-          - arrange_windows
-          - move_window
-          - terminal_connect
-          - terminal_execute
-          - terminal_read
-          - terminal_clear
-          - terminal_close
-          - file_read
-          - file_exists
-          - directory_list
-          - file_write
-          - file_edit
-          - file_append
-          - file_delete
-          - directory_delete
-          - file_download
-          - file_list_downloads
-          - browser_open
-          - browser_navigate
-          - browser_click
-          - browser_type
-          - browser_get_dom
-          - browser_get_clickables
-          - browser_state
-          - browser_info
-          - browser_scroll
-          - browser_close
-          - browser_screenshot
-          - browser_wait
-          - browser_list_tabs
-          - browser_open_tab
-          - browser_close_tab
-          - browser_switch_tab
-          - browser_execute
-          description: Canonical command name. See /v1/models for the current model and action capabilities.
-        parameters:
-          type: object
-          additionalProperties: true
-          description: Command-specific params (e.g. {x, y} for click). Max 1 MB serialized.
-        timeout_ms:
-          type:
-          - integer
-          - 'null'
-          minimum: 1000
-          maximum: 120000
     ConnectionDetailsFull:
       type: object
       required:
@@ -2027,203 +3325,157 @@ components:
           description: Actual desktop height, when reported by the machine.
         request_id:
           type: string
-    ActionResultResponse:
+    DirectBrowserWaitParameters:
       type: object
-      required:
-      - machine_id
-      - command
-      - success
-      - duration_ms
-      - request_id
-      properties:
-        machine_id:
-          type: string
-        command:
-          type: string
-        success:
-          type: boolean
-        result:
-          type:
-          - object
-          - 'null'
-          additionalProperties: true
-        error:
-          type:
-          - string
-          - 'null'
-        duration_ms:
-          type: integer
-        screenshot:
-          type:
-          - string
-          - 'null'
-          description: Auto-captured post-action screenshot for browser_* commands. Data URI base64.
-        request_id:
-          type: string
-    UpdateMachineResponse:
-      type: object
-      required:
-      - machine_id
-      - ttl_minutes
-      - auto_destroy_at
-      - request_id
-      properties:
-        machine_id:
-          type: string
-        ttl_minutes:
-          type:
-          - integer
-          - 'null'
-        auto_destroy_at:
-          type:
-          - string
-          - 'null'
-          format: date-time
-        request_id:
-          type: string
-    ListMachinesResponse:
-      type: object
-      required:
-      - data
-      - request_id
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/MachineRecord'
-        has_more:
-          type: boolean
-          default: false
-        request_id:
-          type: string
-    UpdateMachineRequest:
-      type: object
-      required:
-      - ttl_minutes
       additionalProperties: false
+      not:
+        required:
+        - selector
+        - text
       properties:
-        ttl_minutes:
+        selector:
+          type: string
+          minLength: 1
+          maxLength: 4096
+        text:
+          type: string
+          minLength: 1
+          maxLength: 4096
+        timeout:
+          type: integer
+          minimum: 1
+          maximum: 120000
+          default: 5000
+    DirectModifiedClickParameters:
+      type: object
+      required:
+      - x
+      - y
+      additionalProperties: false
+      not:
+        required:
+        - hold_keys
+        - modifiers
+      properties:
+        x:
           type: integer
           minimum: 0
-          maximum: 10080
-          description: 0 clears auto-destroy; otherwise the value must be between 5 and 10080.
-          oneOf:
-          - const: 0
-          - minimum: 5
-            maximum: 10080
-    ApiError:
-      type: object
-      required:
-      - error
-      properties:
-        error:
-          type: object
-          required:
-          - code
-          - message
-          - type
-          - retryable
-          - retry_with_same_idempotency_key
-          - request_id
-          properties:
-            code:
-              type: string
-              description: Stable machine-readable error code (e.g. INVALID_API_KEY, INSUFFICIENT_CREDITS).
-              examples:
-              - INVALID_API_KEY
-            message:
-              type: string
-              description: Human-readable explanation. May include suggestions or examples.
-            type:
-              type: string
-              enum:
-              - auth_error
-              - validation_error
-              - rate_limit_error
-              - billing_error
-              - not_found_error
-              - state_error
-              - server_error
-              - client_error
-            request_id:
-              type: string
-              description: Server-assigned correlation ID. Include in support requests.
-              examples:
-              - req_a1b2c3d4e5f6
-            suggestion:
-              type: string
-              description: A concrete next step, auto-filled per code. LLM agents can act on it to self-recover.
-            retryable:
-              type: boolean
-              description: 'true when retrying the same call may succeed (transient server failures + back-pressure: INTERNAL_ERROR, DB_UNAVAILABLE, SERVICE_UNAVAILABLE, UPSTREAM_*, PREDICTION_FAILED, *_FAILED, RATE_LIMITED, TOO_MANY_RUNS, IDEMPOTENCY_IN_FLIGHT, ...). false for deterministic client errors. A CUA BILLING_UNAVAILABLE caused by refund uncertainty is false unless the server confirmed a shared recovery checkpoint. Present on EVERY error envelope, including gateway/5xx/timeout paths.'
-            retry_with_same_idempotency_key:
-              type: boolean
-              description: 'true only when the concrete response permits replay, the original operation is one of the exact 18 reserve-and-replay operations, and that original request already carried the key. Reuse that SAME key and identical body. A retryable error alone does not make an operation idempotent, and a key cannot be added retroactively. For CUA refund uncertainty this is true only after an exact shared checkpoint was confirmed; unkeyed or uncheckpointed responses are false and must not be retried automatically. A confirmed refunded failure sets this false even when retryable remains true: use a new key, because the old debit is compensated and wallet-guarded by IDEMPOTENCY_ALREADY_REFUNDED. false for deterministic errors.'
-            retry_after:
-              type:
-              - integer
-              - 'null'
-              description: Seconds to wait before retrying (accompanies retryable:true back-pressure codes; mirrors the Retry-After header).
-            examples:
-              type: object
-              additionalProperties: true
-              description: 'Machine-readable limits for self-correction. On PAYLOAD_TOO_LARGE / INVALID_SCREENSHOT: { max_base64_bytes: 10485760, max_mb: 10, min_base64_chars: 100, formats: ["png","jpeg"] }.'
-    BatchActionRequest:
-      type: object
-      required:
-      - steps
-      additionalProperties: false
-      properties:
-        steps:
+          maximum: 100000
+        y:
+          type: integer
+          minimum: 0
+          maximum: 100000
+        button:
+          type: string
+          enum:
+          - left
+          - right
+          - middle
+          default: left
+        clicks:
+          type: integer
+          minimum: 1
+          maximum: 3
+          default: 1
+        hold_keys:
           type: array
-          minItems: 1
-          maxItems: 50
+          maxItems: 8
           items:
-            $ref: '#/components/schemas/ActionRequest'
-        stop_on_error:
-          type: boolean
-          default: true
-    ScreenshotResponse:
+            type: string
+            minLength: 1
+            maxLength: 64
+          default: []
+        modifiers:
+          type: array
+          maxItems: 8
+          items:
+            type: string
+            minLength: 1
+            maxLength: 64
+          description: Alias for hold_keys. Send only one vocabulary.
+    ExternalMachineCommandResultResponse:
       type: object
       required:
       - machine_id
-      - image_b64
-      - mime_type
-      - width
-      - height
-      - captured_at
+      - command_id
+      - status
+      - replayed
       - request_id
+      additionalProperties: false
       properties:
         machine_id:
           type: string
-        image_b64:
+        command_id:
           type: string
-          description: 'Base64-encoded screenshot (no data: prefix).'
-        mime_type:
-          type: string
-          default: image/jpeg
-        width:
-          type: integer
-        height:
-          type: integer
-        captured_at:
-          type: string
-          format: date-time
-        request_id:
-          type: string
-    HealthResponse:
-      type: object
-      required:
-      - status
-      properties:
+          format: uuid
         status:
           type: string
           enum:
-          - ok
-        api_version:
+          - completed
+          - failed
+        replayed:
+          type: boolean
+          description: true for a byte-equivalent result replay; a conflicting result returns 409.
+        request_id:
           type: string
-        service:
+    DirectBrowserOptionalUrlParameters:
+      type: object
+      additionalProperties: false
+      properties:
+        url:
           type: string
+          minLength: 1
+          maxLength: 8192
+    DirectFileReadParameters:
+      type: object
+      additionalProperties: false
+      anyOf:
+      - required:
+        - path
+      - required:
+        - filepath
+      description: Send path or filepath. If both aliases are present, their strings must be identical.
+      properties:
+        path:
+          type: string
+          minLength: 1
+          maxLength: 4096
+        filepath:
+          type: string
+          minLength: 1
+          maxLength: 4096
+        encoding:
+          type: string
+          enum:
+          - auto
+          - utf-8
+          - base64
+    DirectTerminalExecuteParameters:
+      type: object
+      required:
+      - command
+      additionalProperties: false
+      properties:
+        command:
+          type: string
+          minLength: 1
+          maxLength: 8192
+        wait_for_output:
+          type: boolean
+          default: true
+        timeout:
+          type: integer
+          minimum: 1
+          maximum: 120
+          default: 30
+        session_id:
+          type: string
+          minLength: 1
+          maxLength: 128
+        cwd:
+          type: string
+          minLength: 1
+          maxLength: 4096
     ProvisionRequest:
       type: object
       required:
@@ -2278,6 +3530,699 @@ components:
           additionalProperties:
             type: string
           description: Max 16 entries; keys ≤64 chars, values ≤256 chars.
+        proxy:
+          $ref: '#/components/schemas/ProxyRequest'
+    BrowserOpRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        parameters:
+          type: object
+          additionalProperties: true
+        timeout_ms:
+          type:
+          - integer
+          - 'null'
+          minimum: 1000
+          maximum: 120000
+        precondition_frame_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: Required when this convenience operation mutates an external machine.
+    ActionRequest:
+      type: object
+      required:
+      - command
+      additionalProperties: false
+      oneOf:
+      - type: object
+        properties:
+          command:
+            type: string
+            const: screenshot
+          parameters:
+            $ref: '#/components/schemas/DirectEmptyParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: click
+          parameters:
+            $ref: '#/components/schemas/DirectClickParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: double_click
+          parameters:
+            $ref: '#/components/schemas/DirectDoubleClickParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: click_with_modifiers
+          parameters:
+            $ref: '#/components/schemas/DirectModifiedClickParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: type
+          parameters:
+            $ref: '#/components/schemas/DirectTypeParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: key_press
+          parameters:
+            $ref: '#/components/schemas/DirectKeyPressParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: key_combo
+          parameters:
+            $ref: '#/components/schemas/DirectKeyComboParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: scroll
+          parameters:
+            $ref: '#/components/schemas/DirectScrollParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: drag
+          parameters:
+            $ref: '#/components/schemas/DirectDragParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: move
+          parameters:
+            $ref: '#/components/schemas/DirectMoveParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: list_windows
+          parameters:
+            $ref: '#/components/schemas/DirectEmptyParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: switch_to_window
+          parameters:
+            $ref: '#/components/schemas/DirectSwitchWindowParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: close_window
+          parameters:
+            $ref: '#/components/schemas/DirectWindowTargetParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: minimize_window
+          parameters:
+            $ref: '#/components/schemas/DirectWindowTargetParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: maximize_window
+          parameters:
+            $ref: '#/components/schemas/DirectWindowTargetParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: restore_window
+          parameters:
+            $ref: '#/components/schemas/DirectWindowTargetParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: arrange_windows
+          parameters:
+            $ref: '#/components/schemas/DirectArrangeWindowsParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: move_window
+          parameters:
+            $ref: '#/components/schemas/DirectMoveWindowParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: terminal_connect
+          parameters:
+            $ref: '#/components/schemas/DirectTerminalConnectParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: terminal_execute
+          parameters:
+            $ref: '#/components/schemas/DirectTerminalExecuteParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: terminal_read
+          parameters:
+            $ref: '#/components/schemas/DirectTerminalSessionParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: terminal_clear
+          parameters:
+            $ref: '#/components/schemas/DirectTerminalSessionParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: terminal_close
+          parameters:
+            $ref: '#/components/schemas/DirectTerminalSessionParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: file_read
+          parameters:
+            $ref: '#/components/schemas/DirectFileReadParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: file_exists
+          parameters:
+            $ref: '#/components/schemas/DirectPathParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: directory_list
+          parameters:
+            $ref: '#/components/schemas/DirectDirectoryParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: file_write
+          parameters:
+            $ref: '#/components/schemas/DirectFileContentParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: file_edit
+          parameters:
+            $ref: '#/components/schemas/DirectFileEditParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: file_append
+          parameters:
+            $ref: '#/components/schemas/DirectFileContentParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: file_delete
+          parameters:
+            $ref: '#/components/schemas/DirectPathParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: directory_delete
+          parameters:
+            $ref: '#/components/schemas/DirectRequiredDirectoryParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: file_download
+          parameters:
+            $ref: '#/components/schemas/DirectFileReadParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: file_list_downloads
+          parameters:
+            $ref: '#/components/schemas/DirectListDownloadsParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: browser_open
+          parameters:
+            $ref: '#/components/schemas/DirectBrowserOptionalUrlParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: browser_navigate
+          parameters:
+            $ref: '#/components/schemas/DirectBrowserUrlParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: browser_click
+          parameters:
+            $ref: '#/components/schemas/DirectBrowserClickParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: browser_type
+          parameters:
+            $ref: '#/components/schemas/DirectBrowserTypeParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: browser_get_dom
+          parameters:
+            $ref: '#/components/schemas/DirectEmptyParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: browser_get_clickables
+          parameters:
+            $ref: '#/components/schemas/DirectEmptyParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: browser_state
+          parameters:
+            $ref: '#/components/schemas/DirectEmptyParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: browser_info
+          parameters:
+            $ref: '#/components/schemas/DirectEmptyParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: browser_scroll
+          parameters:
+            $ref: '#/components/schemas/DirectBrowserScrollParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: browser_close
+          parameters:
+            $ref: '#/components/schemas/DirectEmptyParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: browser_screenshot
+          parameters:
+            $ref: '#/components/schemas/DirectBrowserScreenshotParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: browser_wait
+          parameters:
+            $ref: '#/components/schemas/DirectBrowserWaitParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: browser_list_tabs
+          parameters:
+            $ref: '#/components/schemas/DirectEmptyParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: browser_open_tab
+          parameters:
+            $ref: '#/components/schemas/DirectBrowserOptionalUrlParameters'
+      - type: object
+        properties:
+          command:
+            type: string
+            const: browser_close_tab
+          parameters:
+            $ref: '#/components/schemas/DirectTabIndexParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: browser_switch_tab
+          parameters:
+            $ref: '#/components/schemas/DirectRequiredTabIndexParameters'
+      - type: object
+        required:
+        - parameters
+        properties:
+          command:
+            type: string
+            const: browser_execute
+          parameters:
+            $ref: '#/components/schemas/DirectBrowserExecuteParameters'
+      discriminator:
+        propertyName: command
+      description: A discriminated direct-machine command. parameters is strictly selected by command; unknown keys are rejected before dispatch.
+      properties:
+        command:
+          type: string
+          enum:
+          - screenshot
+          - click
+          - double_click
+          - click_with_modifiers
+          - type
+          - key_press
+          - key_combo
+          - scroll
+          - drag
+          - move
+          - list_windows
+          - switch_to_window
+          - close_window
+          - minimize_window
+          - maximize_window
+          - restore_window
+          - arrange_windows
+          - move_window
+          - terminal_connect
+          - terminal_execute
+          - terminal_read
+          - terminal_clear
+          - terminal_close
+          - file_read
+          - file_exists
+          - directory_list
+          - file_write
+          - file_edit
+          - file_append
+          - file_delete
+          - directory_delete
+          - file_download
+          - file_list_downloads
+          - browser_open
+          - browser_navigate
+          - browser_click
+          - browser_type
+          - browser_get_dom
+          - browser_get_clickables
+          - browser_state
+          - browser_info
+          - browser_scroll
+          - browser_close
+          - browser_screenshot
+          - browser_wait
+          - browser_list_tabs
+          - browser_open_tab
+          - browser_close_tab
+          - browser_switch_tab
+          - browser_execute
+          description: Canonical command name. GET /v1/models returns the same list in machine_action_commands for runtime discovery.
+        parameters:
+          type: object
+          description: Command-specific strict object selected by the command discriminator. Max 1,000,000 serialized UTF-8 JSON bytes.
+        timeout_ms:
+          type:
+          - integer
+          - 'null'
+          minimum: 1000
+          maximum: 120000
+        action_policy:
+          $ref: '#/components/schemas/ActionPolicy'
+        precondition_frame_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: 'Required for every mutating external-machine action: the frame_id on which it was planned. A missing or stale frame is rejected instead of executing against changed pixels. Obtain it from GET /screenshot or the preceding action response. Read-only external commands may omit it; managed-machine transports ignore it.'
+    GetMachineResponse:
+      type: object
+      required:
+      - machine
+      - request_id
+      properties:
+        machine:
+          $ref: '#/components/schemas/MachineRecord'
+        request_id:
+          type: string
+    ScreenshotBase64:
+      description: One static PNG/JPEG screenshot as raw base64 or an exact data:image/png;base64 / data:image/jpeg;base64 URI. Animated and multi-frame images are rejected. This per-image limit does not multiply the ordinary 15 MiB aggregate JSON request-body cap.
+      oneOf:
+      - type: string
+        minLength: 100
+        maxLength: 10485760
+        pattern: ^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$
+        title: Raw base64
+      - type: string
+        minLength: 122
+        maxLength: 10485782
+        pattern: ^data:image/png;base64,(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$
+        title: PNG data URI
+      - type: string
+        minLength: 123
+        maxLength: 10485783
+        pattern: ^data:image/jpeg;base64,(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$
+        title: JPEG data URI
+    MachineRecord:
+      type: object
+      required:
+      - id
+      - display_name
+      - status
+      - kind
+      - capabilities
+      - protocol_version
+      - connection_status
+      - last_seen_at
+      properties:
+        proxy:
+          $ref: '#/components/schemas/MachineProxyView'
+        id:
+          type: string
+        display_name:
+          type: string
+        kind:
+          type: string
+          enum:
+          - managed
+          - external
+          description: managed is a Coasty-hosted VM; external is a customer-operated driver that supplies frames and executes typed commands.
+        capabilities:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/MachineCapability'
+        protocol_version:
+          type:
+          - string
+          - 'null'
+          description: External-driver protocol version. null for managed machines.
+        connection_status:
+          type:
+          - string
+          - 'null'
+          enum:
+          - connected
+          - disconnected
+          - stale
+          - revoked
+          description: Liveness of an external driver. null for managed machines; separate from the hosted-VM lifecycle status.
+        last_seen_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: Most recent authenticated observation, command poll, result, or heartbeat from an external driver.
+        status:
+          type: string
+          enum:
+          - creating
+          - provisioning
+          - starting
+          - running
+          - stopping
+          - stopped
+          - restarting
+          - suspended
+          - deleting
+          - terminated
+          - error
+        os_type:
+          type: string
+          enum:
+          - linux
+          - windows
+          default: linux
+          description: Runtime compatibility family. External-driver platform is supplied at enrollment and may be macOS or other even when this compatibility field is linux.
+        desktop_enabled:
+          type: boolean
+          default: false
+        cpu_cores:
+          type: integer
+          default: 1
+        memory_gb:
+          type: number
+          default: 2
+        storage_gb:
+          type: integer
+          default: 10
+        public_ip:
+          type:
+          - string
+          - 'null'
+        is_test:
+          type: boolean
+          default: false
+        created_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        started_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        auto_destroy_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        ttl_minutes:
+          type:
+          - integer
+          - 'null'
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+        billing:
+          $ref: '#/components/schemas/MachineBilling'
+          description: How this API-provisioned machine is metered (omitted for non-API machines).
+    ExternalMachineCommandsResponse:
+      type: object
+      required:
+      - machine_id
+      - data
+      - next_cursor
+      - fencing_token
+      - request_id
+      additionalProperties: false
+      properties:
+        machine_id:
+          type: string
+        data:
+          type: array
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/ExternalMachineCommandEnvelope'
+        next_cursor:
+          type: integer
+          minimum: 0
+          description: Resume with after=next_cursor after durably processing this batch.
+        fencing_token:
+          type: integer
+          minimum: 1
+        request_id:
+          type: string
+    UpdateMachineResponse:
+      type: object
+      required:
+      - machine_id
+      - ttl_minutes
+      - auto_destroy_at
+      - request_id
+      properties:
+        machine_id:
+          type: string
+        ttl_minutes:
+          type:
+          - integer
+          - 'null'
+        auto_destroy_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        request_id:
+          type: string
     TerminalRequest:
       type: object
       required:
@@ -2303,30 +4248,543 @@ components:
           - string
           - 'null'
           maxLength: 512
+        precondition_frame_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: Required when executing this mutating terminal command on an external machine.
+    DirectSwitchWindowParameters:
+      type: object
+      required:
+      - window
+      additionalProperties: false
+      properties:
+        window:
+          type: string
+          minLength: 1
+          maxLength: 512
+    BatchActionResponse:
+      type: object
+      required:
+      - machine_id
+      - results
+      - completed_count
+      - failed_count
+      - request_id
+      properties:
+        machine_id:
+          type: string
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionResultResponse'
+        completed_count:
+          type: integer
+        failed_count:
+          type: integer
+        aborted:
+          type: boolean
+          default: false
+        request_id:
+          type: string
+    DirectPathParameters:
+      type: object
+      additionalProperties: false
+      anyOf:
+      - required:
+        - path
+      - required:
+        - filepath
+      description: Send path or filepath. If both aliases are present, their strings must be identical.
+      properties:
+        path:
+          type: string
+          minLength: 1
+          maxLength: 4096
+        filepath:
+          type: string
+          minLength: 1
+          maxLength: 4096
+    ExternalMachineHeartbeatRequest:
+      type: object
+      required:
+      - fencing_token
+      additionalProperties: false
+      properties:
+        protocol_version:
+          type: string
+          const: '1'
+          default: '1'
+        fencing_token:
+          type: integer
+          minimum: 1
+    ActionResultResponse:
+      type: object
+      required:
+      - machine_id
+      - command
+      - success
+      - duration_ms
+      - request_id
+      properties:
+        machine_id:
+          type: string
+        command:
+          type: string
+        success:
+          type: boolean
+        result:
+          type:
+          - object
+          - 'null'
+          additionalProperties: true
+        error:
+          type:
+          - string
+          - 'null'
+        duration_ms:
+          type: integer
+        screenshot:
+          type:
+          - string
+          - 'null'
+          description: Typed post-action screenshot when the transport returns one. External-machine mutations commit this observation atomically with their result. Data URI or raw base64; never duplicated inside result. Screenshot pixels are not persisted in idempotency replay records.
+        frame_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+          description: Accepted post-action external observation identity. Use it as the next action's precondition_frame_id.
+        observation_available:
+          type:
+          - boolean
+          - 'null'
+          description: Whether screenshot pixels are present in this response. An idempotent replay may retain frame_id while returning screenshot=null and observation_available=false.
+        request_id:
+          type: string
+    DirectFileEditParameters:
+      type: object
+      additionalProperties: false
+      allOf:
+      - anyOf:
+        - required:
+          - path
+        - required:
+          - filepath
+      - oneOf:
+        - required:
+          - find
+          - replace
+          not:
+            anyOf:
+            - required:
+              - old_text
+            - required:
+              - new_text
+        - required:
+          - old_text
+          - new_text
+          not:
+            anyOf:
+            - required:
+              - find
+            - required:
+              - replace
+      description: 'Send path or filepath plus exactly one complete edit vocabulary: find/replace or old_text/new_text. If both path aliases are present they must match.'
+      properties:
+        path:
+          type: string
+          minLength: 1
+          maxLength: 4096
+        filepath:
+          type: string
+          minLength: 1
+          maxLength: 4096
+        find:
+          type: string
+          minLength: 1
+        replace:
+          type: string
+        old_text:
+          type: string
+          minLength: 1
+        new_text:
+          type: string
+        all:
+          type: boolean
+          const: true
+          default: true
+  responses:
+    RateLimited:
+      description: Rate or concurrency limit exceeded.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: RATE_LIMIT_EXCEEDED
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    DeviceUnauthorized:
+      description: 'Missing, malformed, revoked, or machine-mismatched external device token. Pass the one-time machine token as `Authorization: Bearer <device_token>`; owner API keys are not accepted on device-plane routes. Revoked tokens may return DEVICE_REVOKED.'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: INVALID_DEVICE_TOKEN
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    ServerError:
+      description: Unexpected server error. Retry with exponential backoff.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: INTERNAL_ERROR
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    ServiceUnavailable:
+      description: A required service is temporarily unavailable.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: SERVICE_UNAVAILABLE
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    PaymentRequired:
+      description: Insufficient balance for this operation. Direct metered API calls and managed-machine runtime use the prepaid Developer API wallet; scheduled execution is the documented consumer subscription-credit exception. Follow the operation's billing fields and top up the matching balance in the dashboard.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: INSUFFICIENT_CREDITS
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    NotFound:
+      description: Resource not found in this key's namespace.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: NOT_FOUND
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    BadGateway:
+      description: An upstream dependency returned an invalid response.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: UPSTREAM_ERROR
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    PayloadTooLarge:
+      description: The request body exceeds the endpoint limit.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: PAYLOAD_TOO_LARGE
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    Forbidden:
+      description: API key lacks the required scope or tier-feature is unavailable on the caller's plan.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: INSUFFICIENT_SCOPE
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    Unauthorized:
+      description: 'Missing, invalid, or revoked API key. Pass `X-API-Key: sk-coasty-live-...` (or test).'
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: INVALID_API_KEY
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    UnprocessableEntity:
+      description: The JSON shape is valid but one or more values violate the endpoint contract.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: VALIDATION_ERROR
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    Conflict:
+      description: The resource state conflicts with this operation.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: CONFLICT
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    GatewayTimeout:
+      description: An upstream dependency timed out.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: UPSTREAM_TIMEOUT
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
+    BadRequest:
+      description: Invalid request body or parameters.
+      headers:
+        X-Request-Id:
+          $ref: '#/components/headers/RequestId'
+        X-Coasty-Request-Id:
+          $ref: '#/components/headers/CoastyRequestId'
+        Retry-After:
+          $ref: '#/components/headers/RetryAfter'
+        X-Credits-Charged:
+          $ref: '#/components/headers/CreditsCharged'
+        X-Credits-Refunded:
+          $ref: '#/components/headers/CreditsRefunded'
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            error:
+              code: VALIDATION_ERROR
+              message: An error occurred. See `code` for details.
+              type: validation_error
+              request_id: req_a1b2c3d4e5f6
+              retryable: false
+              retry_with_same_idempotency_key: false
   headers:
+    CreditsCharged:
+      description: Coasty credits charged by this response (zero for BYOK, sandbox keys, and stored replays).
+      schema:
+        type: integer
+        minimum: 0
     CreditsRefunded:
       description: Credits durably returned to the wallet after a failed billed operation.
       schema:
         type: integer
         minimum: 1
+    IdempotencyReplayed:
+      description: true when this response replays a completed attempt; false for a fresh execution.
+      schema:
+        type: boolean
     CoastyRequestId:
       description: Coasty correlation identifier for this request.
       schema:
         type: string
-    CreditsCharged:
-      description: Credits charged by this response (zero for sandbox keys and stored replays).
-      schema:
-        type: integer
-        minimum: 0
-    IdempotentReplay:
-      description: true when this is a stored response replay rather than a new execution.
-      schema:
-        type: boolean
-    RetryAfter:
-      description: Seconds to wait before retrying. Present on retryable back-pressure and transient failures.
-      schema:
-        type: integer
-        minimum: 0
     IdempotencyStatus:
       description: Lifecycle status of the canonical idempotent attempt when applicable.
       schema:
@@ -2334,6 +4792,10 @@ components:
         enum:
         - processing
         - completed
+    IdempotentReplay:
+      description: true when this is a stored response replay rather than a new execution.
+      schema:
+        type: boolean
     TestMode:
       description: true when the request executed against the sandbox namespace.
       schema:
@@ -2346,12 +4808,51 @@ components:
         - live
         - test
         - legacy
+    RequestId:
+      description: Conventional correlation-ID alias for the current HTTP attempt. It normally matches X-Coasty-Request-Id; log both when an exact replay preserves an earlier logical-operation id.
+      schema:
+        type: string
+    RetryAfter:
+      description: Seconds to wait before retrying. Present on retryable back-pressure and transient failures.
+      schema:
+        type: integer
+        minimum: 0
   parameters:
+    ExternalCommandId:
+      name: command_id
+      in: path
+      required: true
+      description: Command id returned by GET /commands. Use it verbatim; it is scoped to this machine.
+      schema:
+        type: string
+        format: uuid
+    ExternalCommandWaitSeconds:
+      name: wait_seconds
+      in: query
+      required: false
+      description: Long-poll duration. A timeout is a 200 response with data=[] and a resumable next_cursor.
+      schema:
+        type: number
+        minimum: 0
+        maximum: 25
+        default: 20
     IdempotencyKey:
       name: Idempotency-Key
       in: header
       required: false
-      description: 'Optional client-supplied key (≤128 chars, [A-Za-z0-9_-:]) for safe retries. ''Same request'' = a SHA-256 of the canonical (sorted-key) JSON body (session_id is folded in for /sessions/{id}/predict). Replays the original response for 24 h when the body hash matches (X-Coasty-Idempotent-Replay: true and X-Credits-Charged: 0). Inference replays also set body usage.credits_charged=0 and usage.billed=false; machine-snapshot bodies retain the original gross charge for auditability. A retry while the original is still running waits up to ~25 s then returns the result, otherwise 409 IDEMPOTENCY_IN_FLIGHT (retry with the SAME key). Returns 422 IDEMPOTENCY_KEY_REUSED if the body differs. Collect a lost result via GET /v1/idempotency/{key}.'
+      description: 'Optional client-supplied key (≤128 chars, [A-Za-z0-9_-:]) for safe retries. Keys are global within one concrete API-key credential plus live/test mode; never reuse one on another endpoint. ''Same request'' = a SHA-256 of an explicit operation discriminator plus the canonical (sorted-key) JSON body (session_id is folded in for /sessions/{id}/predict). LLM-capable operations also bind the non-secret effective provider, role models, and one-way provider-key fingerprint; plaintext provider keys never enter the hash or replay record. Replays the response for 24 h when operation, body, and effective execution identity match (X-Coasty-Idempotent-Replay: true and X-Credits-Charged: 0). Action screenshot pixels are response-only and deliberately omitted from replay storage; a replay retains frame_id but returns screenshot=null and observation_available=false. Inference replays also set body usage.credits_charged=0 and usage.billed=false; machine-snapshot bodies retain the original gross charge for auditability. A retry while the original is still running waits up to ~25 s then returns the result, otherwise 409 IDEMPOTENCY_IN_FLIGHT (retry with the SAME key). Returns 422 IDEMPOTENCY_KEY_REUSED if any bound input differs. Rotating the API key starts a new replay namespace. Collect a lost result via GET /v1/idempotency/{key} using the original credential.'
+      schema:
+        type: string
+        maxLength: 128
+        pattern: ^[A-Za-z0-9_\-:]+$
+      examples:
+        uuid:
+          value: 550e8400-e29b-41d4-a716-446655440000
+    RequiredIdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Required for external-machine enrollment. Reuse the same key with the identical canonical body to recover the committed 201 response without creating another machine. Reuse with a different body is rejected.
       schema:
         type: string
         maxLength: 128
@@ -2367,6 +4868,25 @@ components:
       schema:
         type: string
         pattern: ^(?:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}|mch_test_[0-9a-f]{8,32})$
+    ExternalCommandAfter:
+      name: after
+      in: query
+      required: false
+      description: Exclusive durable cursor. Use the previous response's next_cursor to resume without gaps.
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    ExternalCommandLimit:
+      name: limit
+      in: query
+      required: false
+      description: Maximum queued commands returned in one batch.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 10
   securitySchemes:
     apiKey:
       type: apiKey
@@ -2378,6 +4898,11 @@ components:
       scheme: bearer
       bearerFormat: Coasty API key (sk-coasty-{live,test}-...)
       description: Equivalent to X-API-Key. Use whichever your client supports.
+    machineToken:
+      type: http
+      scheme: bearer
+      bearerFormat: dvc_coasty_{live|test}_<token>
+      description: External-machine driver credential returned by POST /v1/machines/external. Valid only for that machine's commands, observations, results, and heartbeat endpoints. It is not an owner API key and cannot enroll, list, inspect, run, or delete resources. Before authentication, malformed or rotating credentials share a peer bucket of 1,000 requests/minute and 40,000/hour. After authentication, each device token is limited to 300 requests/minute and 12,000/hour, and all device tokens owned by one account share 1,200 requests/minute and 48,000/hour. Screenshot observations additionally have a per-token limit of 60/minute and 3,600/hour. 429 responses include retry metadata.
     webhookHmac:
       type: apiKey
       name: Coasty-Signature
