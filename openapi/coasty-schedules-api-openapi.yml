@@ -1979,3 +1979,9 @@ x-mcp-server:
   install: npx -y @coasty/mcp
   description: Coasty's Model Context Protocol server. Wires the /v1/* surface plus pricing into any MCP-compatible client (Claude Desktop, Cursor, etc.).
   homepage: https://coasty.ai/mcp
+x-provenance:
+  method: harvested
+  publisher: Coasty
+  source: https://coasty.ai/openapi.json
+  note: split by refine-openapis from the provider's own published document, verified by fetch (openapi/_original/*.fetch.json);
+    stamped by stamp-openapi-provenance.py (roadmap#793)
