@@ -5,10 +5,17 @@
       "source": "https://coasty.ai/blog",
       "feed_url": "https://coasty.ai/blog/feed.xml",
       "title": "",
-      "saved": 60,
+      "saved": 6,
       "method": "discovered"
+    },
+    {
+      "source": "https://coasty.ai/blog/feed.xml",
+      "feed_url": "https://coasty.ai/blog/feed.xml",
+      "title": "",
+      "saved": 0,
+      "method": "feed"
     }
   ],
-  "post_count": 60,
-  "fetched": "2026-10-10T13:15:00Z"
+  "post_count": 103,
+  "fetched": "2026-10-17T14:53:57Z"
 }
